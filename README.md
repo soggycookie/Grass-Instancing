@@ -37,11 +37,12 @@ This topic took me 3 days just to have a solid grasp. Maybe the explaination abo
 - :x: Post processing
 
 ## References
-
-- [^1]: https://developer.nvidia.com/gpugems/gpugems3/part-vi-gpu-computing/chapter-39-parallel-prefix-sum-scan-cuda
+- [Parallel Prefix Sum](https://developer.nvidia.com/gpugems/gpugems3/part-vi-gpu-computing/chapter-39-parallel-prefix-sum-scan-cuda)
 - [Acerola's project](https://github.com/GarrettGunnell/Grass)
 - [Good tutorial on explaining Parallel Prefix Sum](https://www.youtube.com/watch?v=lavZl_wEbPE)
 
 ## Other Resources
 
 [Catlikecoding](https://catlikecoding.com/): He provides tons of good tutorial, like Rendering, GPU Instancing, Compute Shader....
+
+[^1]: https://developer.nvidia.com/gpugems/gpugems3/part-vi-gpu-computing/chapter-39-parallel-prefix-sum-scan-cuda
