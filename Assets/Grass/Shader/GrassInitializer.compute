@@ -1,0 +1,44 @@
+#pragma kernel CSMain
+
+#include "Simplex.compute" 
+
+struct GrassData{
+    float3 position;
+    float2 worldUV;
+};
+
+RWStructuredBuffer<GrassData> _GrassDataBuffer;    
+
+float4 _Center;
+float _Dimension;
+uint _Density, _InstanceDimension;
+
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    if(id.x < _InstanceDimension && id.y < _InstanceDimension){
+
+        GrassData data;
+        float offset = 1 / (float)(_Density + 1.0f);
+
+        float yPos = _Center.y;
+        float xPos = _Center.x - _Dimension/ 2 + (float)(id.x)/ _Density + offset;
+        float zPos = _Center.z - _Dimension/ 2 + (float)(id.y)/ _Density + offset;
+
+        float2 pos = float2(xPos,zPos);
+         
+        xPos = xPos + snoise( float3(pos.xy + _Center.x, 0) * 3.0f) * 0.17f;
+        zPos = zPos + snoise( float3(pos.xy + _Center.y, 0) * 4.0f) * 0.17f;
+        
+        float3 worldPos = float3(xPos, yPos,zPos);
+
+        float2 worldUV;
+        worldUV = (float2) id.xy/ _InstanceDimension;
+
+        data.position = worldPos;
+        data.worldUV = worldUV;
+
+        _GrassDataBuffer[id.x + id.y * _InstanceDimension] = data;  
+    }
+}
