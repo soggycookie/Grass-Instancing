@@ -30,17 +30,17 @@ This topic took me 3 days just to have a solid grasp. Maybe the explaination abo
 
 ## Tasks
 
-- [ ] Fog
-- [ ] GPU Frustum Culling
-- [x] Better wind system
-- [x] Occlusion culling
-- [x] Post processing
+- :white_check_mark: ~~Fog~~
+- :white_check_mark: ~~GPU Frustum Culling~~
+- :x: Better wind system
+- :x: Occlusion culling
+- :x: Post processing
 
 ## References
 
-[^1]: https://developer.nvidia.com/gpugems/gpugems3/part-vi-gpu-computing/chapter-39-parallel-prefix-sum-scan-cuda
-[Acerola's project](https://github.com/GarrettGunnell/Grass)
-[Good tutorial on explaining Parallel Prefix Sum](https://www.youtube.com/watch?v=lavZl_wEbPE)
+- [^1]: https://developer.nvidia.com/gpugems/gpugems3/part-vi-gpu-computing/chapter-39-parallel-prefix-sum-scan-cuda
+- [Acerola's project](https://github.com/GarrettGunnell/Grass)
+- [Good tutorial on explaining Parallel Prefix Sum](https://www.youtube.com/watch?v=lavZl_wEbPE)
 
 ## Other Resources
 
