@@ -17,7 +17,7 @@ We almost there! The only thing left is to calculate world position for every gr
 
 Now we implement it. With my dumb shader knowledge, I implemented a basic sine wave wind system, make it colored and drooped. 
 
-[Implementation](/Assets/Grass/Image/Grass.png)
+![Implementation](/Assets/Grass/Image/Grass.png)
 
 
 
