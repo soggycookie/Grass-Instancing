@@ -102,10 +102,10 @@ Shader "Unlit/Grass"
                 v.vertex.y +=  v.uv.y *(1 - tex2Dlod(_HeightMap, float4(worldUV,0,0)) + lerp(0, 0.2f, idHash))* _HeightStrength ;
 
                 //wind animation
-                float displacement = sin((worldUV.x + worldUV.y + _Time.y * _WindSpeed) * 8) * _WindAmplitude ;
-                v.vertex.y -= v.uv.y * v.uv.y * displacement * 0.3f;
-                displacement+= sin((worldUV.x + worldUV.y + _Time.y * lerp(1, 3, idHash ) * _WindSpeed)* 10) * lerp(0.1f, 0.5f, idHash) * _WindAmplitude;
-                v.vertex.xz += (v.uv.y * v.uv.y ) * displacement / 2;
+                //float displacement = sin((worldUV.x + worldUV.y + _Time.y * _WindSpeed) * 8) * _WindAmplitude ;
+                //v.vertex.y -= v.uv.y * v.uv.y * displacement * 0.3f;
+                //displacement+= sin((worldUV.x + worldUV.y + _Time.y * lerp(1, 3, idHash ) * _WindSpeed)* 10) * lerp(0.1f, 0.5f, idHash) * _WindAmplitude;
+                //v.vertex.xz += (v.uv.y * v.uv.y ) * displacement / 2;
 
                 float4 worldPos = float4(data+ v.vertex.xyz, 1);
                 

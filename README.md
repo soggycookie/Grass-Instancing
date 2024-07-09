@@ -3,7 +3,7 @@
 ## Introduction 
 Hello! Here is a grass system that I build purely for learning after watching Acerola's video about modern foliage. And also this project is my very first one after diving into learning Unity. For my future job opportunity, I will explain this project in detail :nerd_face::point_up:.
 
-Check out Acerola's Youtube channel: [Modern Foliage Rendering](https://www.youtube.com/watch?v=jw00MbIJcrk)
+Check out Acerola's Youtube channel: ![Modern Foliage Rendering](https://www.youtube.com/watch?v=jw00MbIJcrk)
 
 ## GPU Instancing
 Normally. we create a game object if we want it to render on screen, but this is very costly and unscalable. Imagine a 100-square-meter field with only 100 blades of grass. Terrible, right? So we have to find a new solution, and it is GPU INSTANCING. 

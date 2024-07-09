@@ -1,6 +1,5 @@
-#pragma kernel CSMain
-
-#include "Simplex.compute" 
+#pragma kernel InitializeGrass
+#include "Simplex.compute"
 
 struct GrassData{
     float3 position;
@@ -11,25 +10,25 @@ RWStructuredBuffer<GrassData> _GrassDataBuffer;
 
 float4 _Center;
 float _Dimension;
-uint _Density, _InstanceDimension;
-
+uint _Density, _InstanceDimension, _ChunkInstances;
+uint _XOffset, _YOffset;
 
 [numthreads(8,8,1)]
-void CSMain (uint3 id : SV_DispatchThreadID)
+void InitializeGrass (uint3 id : SV_DispatchThreadID)
 {
     if(id.x < _InstanceDimension && id.y < _InstanceDimension){
 
         GrassData data;
         float offset = 1 / (float)(_Density + 1.0f);
-
+        float step = _Dimension / _InstanceDimension;
         float yPos = _Center.y;
-        float xPos = _Center.x - _Dimension/ 2 + (float)(id.x)/ _Density + offset;
-        float zPos = _Center.z - _Dimension/ 2 + (float)(id.y)/ _Density + offset;
+        float xPos = _Center.x - _Dimension/ 2 + step * (float)(id.x) + offset + step / 2 ;
+        float zPos = _Center.z - _Dimension/ 2 + step * (float)(id.y) + offset + step / 2 ;
 
         float2 pos = float2(xPos,zPos);
          
-        xPos = xPos + snoise( float3(pos.xy + _Center.x, 0) * 3.0f) * 0.17f;
-        zPos = zPos + snoise( float3(pos.xy + _Center.y, 0) * 4.0f) * 0.17f;
+        xPos = xPos + snoise( float3(pos.xy + _Center.x, 0) * 3.0f) * 0.12f;
+        zPos = zPos + snoise( float3(pos.xy + _Center.y, 0) * 4.0f) * 0.14f;
         
         float3 worldPos = float3(xPos, yPos,zPos);
 

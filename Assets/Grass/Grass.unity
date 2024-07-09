@@ -504,10 +504,12 @@ MonoBehaviour:
   cam: {fileID: 182774532}
   parent: {fileID: 2029054826}
   uniformPlaneScale: 10
-  densityPerUnit: 5
+  chunkDimension: 2
+  densityPerDimension: 2
+  numInstancePerChunkDimension: 100
   grassMesh: {fileID: -462981019419857548, guid: 964dc7fdf44c21a4d947ec7460f36fe1, type: 3}
   groundMat: {fileID: 2100000, guid: b9d0799a2de5b264cba65af5d7bd990f, type: 2}
-  distanceCutoff: 100
+  distanceCutoff: 500
   grassMaterial: {fileID: 2100000, guid: 19996e6033a5aaf4bb82e3db08f550ce, type: 2}
   grassInitializerCS: {fileID: 7200000, guid: 811685bae4fbbc046bab0f7264aa2bc8, type: 3}
   cullGrassCS: {fileID: 7200000, guid: 88ae234f3e7e8ff45a29f6fdb1067546, type: 3}

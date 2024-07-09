@@ -36,7 +36,7 @@ Material:
     - _Droop: 1.4
     - _FogDensity: 0.03
     - _FogOffset: 5
-    - _HeightStrength: 1.7
+    - _HeightStrength: 0
     - _WindAmplitude: 1
     - _WindSpeed: 0.2
     m_Colors:

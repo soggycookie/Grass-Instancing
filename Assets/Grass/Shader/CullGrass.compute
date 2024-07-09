@@ -32,16 +32,19 @@ float3 _CameraPosition;
 void Vote(uint3 id : SV_DispatchThreadID) {
     float4 position = float4(_GrassDataBuffer[id.x].position.xyz, 1.0f);
     
-    float4 viewspace = mul(MATRIX_VP, position);
+    float4 clipspace = mul(MATRIX_VP, position);
 
-    float3 clipspace = viewspace.xyz;
-    clipspace /= -viewspace.w;
+    float3 NDCSpace = clipspace.xyz;
+    NDCSpace /= -clipspace.w;
 
-    clipspace.x = clipspace.x / 2.0f + 0.5f;
-    clipspace.y = clipspace.y / 2.0f + 0.5f;
-    clipspace.z = -viewspace.w;
+    NDCSpace.x = NDCSpace.x / 2.0f + 0.5f;
+    NDCSpace.y = NDCSpace.y / 2.0f + 0.5f;
+    NDCSpace.z = -clipspace.w;
 
-    bool inView = clipspace.x < -0.2f || clipspace.x > 1.2f || clipspace.z <= -0.1f ? 0 : 1;
+    // screen space [0,1]
+    // create a small margin on x axis to avoid flickering when camera slightly move
+    // also check if object is behind camera
+    bool inView = NDCSpace.x < -0.2f || NDCSpace.x > 1.2f || NDCSpace.z <= -0.1f ? 0 : 1;
     bool withinDistance = distance(_CameraPosition, position.xyz) < _Distance;
 
     _VoteBuffer[id.x] = inView * withinDistance;
