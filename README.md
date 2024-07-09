@@ -32,6 +32,7 @@ This topic took me 3 days just to have a solid grasp. Maybe the explaination abo
 
 - :white_check_mark: ~~Fog~~
 - :white_check_mark: ~~GPU Frustum Culling~~
+- :white_check_mark: ~~Chunk System~~
 - :x: Better wind system
 - :x: Occlusion culling
 - :x: Post processing
