@@ -75,7 +75,8 @@ public class GrassRenderer : MonoBehaviour
                 numThreadGroups++;
         }
         numVoteThreadGroups = Mathf.CeilToInt(numInstancePerChunk / 128.0f);
-        numGroupScanThreadGroups = Mathf.CeilToInt(numInstancePerChunk / 1024.0f);
+        numGroupScanThreadGroups = Mathf.CeilToInt(numThreadGroups / 1024.0f);
+        //numGroupScanThreadGroups = Mathf.CeilToInt(numInstancePerChunk / 1024.0f);
 
         voteBuffer = new ComputeBuffer(numInstancePerChunk, 4);
         scanBuffer = new ComputeBuffer(numInstancePerChunk, 4);
@@ -85,7 +86,7 @@ public class GrassRenderer : MonoBehaviour
         //set up buffer for DrawMeshInstancedIndirect
         args = new uint[5] { 0, 0, 0, 0, 0 };
         args[0] = (uint)grassMesh.GetIndexCount(0);
-        args[1] = (uint)0;
+        args[1] = (uint) 0;
         args[2] = (uint)grassMesh.GetIndexStart(0);
         args[3] = (uint)grassMesh.GetBaseVertex(0);
 
@@ -113,7 +114,7 @@ public class GrassRenderer : MonoBehaviour
                 boundCenter = new Vector3(-halfFieldSize, 0, -halfFieldSize);
                 boundCenter += new Vector3((i + 1) * chunkSize  - chunkSize/2 , 0, (j + 1) * chunkSize - chunkSize / 2);
 
-                Bounds chunkBound = new Bounds(boundCenter, new Vector3(chunkSize, 10.0f, chunkSize));
+                Bounds chunkBound = new Bounds(boundCenter, new Vector3(chunkSize, 20.0f, chunkSize));
 
                 GrassChunk chunk = new GrassChunk();
                 chunk.bound = chunkBound;
@@ -122,20 +123,23 @@ public class GrassRenderer : MonoBehaviour
                 chunk.positionBuffer = new ComputeBuffer(numInstancePerChunk, SizeOf(typeof(GrassData)));
                 chunk.culledPositionBuffer = new ComputeBuffer(numInstancePerChunk, SizeOf(typeof(GrassData)));
 
-                grassInitializerCS.SetInt("_YOffset", i);
-                grassInitializerCS.SetInt("_XOffset", j);
+                grassInitializerCS.SetInt("_YOffset", j);
+                grassInitializerCS.SetInt("_XOffset", i);
                 grassInitializerCS.SetVector("_Center", boundCenter);
                 grassInitializerCS.SetFloat("_Dimension", chunkSize);
                 grassInitializerCS.SetInt("_InstanceDimension", numPerDimension);
                 grassInitializerCS.SetInt("_Density", densityPerDimension);
                 grassInitializerCS.SetInt("_ChunkInstances", numInstancePerChunk);
+                grassInitializerCS.SetInt("_ChunkDimension", chunkDimension);
                 grassInitializerCS.SetBuffer(0, "_GrassDataBuffer", chunk.positionBuffer);
 
                 //[numthreads(8,8,1)]
-                int threadGroup = Mathf.CeilToInt((float)numPerDimension / 8f);
+                int threadGroup = Mathf.CeilToInt((float)numPerDimension / 32f);
                 grassInitializerCS.Dispatch(0, threadGroup, threadGroup, 1);
 
                 Material mat = new Material(grassMaterial);
+                mat.SetInt("_NumInstanceDimension", numPerDimension);
+                mat.SetFloat("_ChunkSize", chunkSize);
                 chunk.material = mat;
 
                 chunks[j + i * chunkDimension] = chunk;
@@ -150,14 +154,17 @@ public class GrassRenderer : MonoBehaviour
 
 
         // Vote
+        cullGrassCS.SetFloat("_ScaleY", chunk.material.GetFloat("_ScaleYAxis"));
+        cullGrassCS.SetFloat("_XAxisRotation", cam.transform.rotation.eulerAngles.x);
         cullGrassCS.SetMatrix("MATRIX_VP", VP);
         cullGrassCS.SetBuffer(0, "_GrassDataBuffer", chunk.positionBuffer);
         cullGrassCS.SetBuffer(0, "_VoteBuffer", voteBuffer);
-        cullGrassCS.SetVector("_CameraPosition", Camera.main.transform.position);
+        cullGrassCS.SetVector("_CameraPosition", cam.transform.position);
         cullGrassCS.SetFloat("_Distance", distanceCutoff);
+        cullGrassCS.SetInt("_NumInstance", numInstancePerChunk);
         cullGrassCS.Dispatch(0, numVoteThreadGroups, 1, 1);
 
-        // Scan Instanes
+        // Scan Instances
         cullGrassCS.SetBuffer(1, "_VoteBuffer", voteBuffer);
         cullGrassCS.SetBuffer(1, "_ScanBuffer", scanBuffer);
         cullGrassCS.SetBuffer(1, "_GroupSumArray", groupSumArrayBuffer);
@@ -215,6 +222,7 @@ public class GrassRenderer : MonoBehaviour
             }
 
             CullGrass(chunks[i], VP);
+
             Graphics.DrawMeshInstancedIndirect(grassMesh, 0, chunks[i].material, chunks[i].bound, chunks[i].argsBuffer);
         
         

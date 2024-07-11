@@ -21,6 +21,9 @@ RWStructuredBuffer<uint> _GroupSumArrayIn;
 RWStructuredBuffer<uint> _GroupSumArrayOut;
 RWStructuredBuffer<GrassData> _CulledGrassOutputBuffer;
 
+float _ScaleY;
+float _XAxisRotation;
+uint _NumInstance;
 float4x4 MATRIX_VP;
 int _NumOfGroups;
 groupshared uint temp[2 * NUM_THREAD_GROUPS_X];
@@ -30,29 +33,42 @@ float3 _CameraPosition;
 
 [numthreads(128, 1, 1)]
 void Vote(uint3 id : SV_DispatchThreadID) {
-    float4 position = float4(_GrassDataBuffer[id.x].position.xyz, 1.0f);
+
+    if(id.x < _NumInstance){
+        float4 position = float4(_GrassDataBuffer[id.x].position.xyz, 1.0f);
     
-    float4 clipspace = mul(MATRIX_VP, position);
+        float4 clipspace = mul(MATRIX_VP, position);
 
-    float3 NDCSpace = clipspace.xyz;
-    NDCSpace /= -clipspace.w;
+        float3 NDCSpace = clipspace.xyz;
+        NDCSpace /= -clipspace.w;
 
-    NDCSpace.x = NDCSpace.x / 2.0f + 0.5f;
-    NDCSpace.y = NDCSpace.y / 2.0f + 0.5f;
-    NDCSpace.z = -clipspace.w;
+        NDCSpace.x = NDCSpace.x / 2.0f + 0.5f;
+        NDCSpace.y = NDCSpace.y / 2.0f + 0.5f;
+        NDCSpace.z = -clipspace.w;
 
-    // screen space [0,1]
-    // create a small margin on x axis to avoid flickering when camera slightly move
-    // also check if object is behind camera
-    bool inView = NDCSpace.x < -0.2f || NDCSpace.x > 1.2f || NDCSpace.z <= -0.1f ? 0 : 1;
-    bool withinDistance = distance(_CameraPosition, position.xyz) < _Distance;
+        // screen space [0,1]
+        // create a margin on x axis to avoid flickering when camera slightly move
+        // also check if object is behind camera
 
-    _VoteBuffer[id.x] = inView * withinDistance;
+        bool inView =( NDCSpace.x < - pow(0.2f, NDCSpace.z >= 1 ? NDCSpace.z : 1) || NDCSpace.x > pow(1.2f, 1 / max(1, NDCSpace.z)) 
+                        || NDCSpace.z <= -0.2f || NDCSpace.y > 1.5f || NDCSpace.y <= -0.5f ) ? 0 : 1;
+                
+        //bool inView =( NDCSpace.x < - 0.2f || NDCSpace.x > 1.2f 
+        //                || NDCSpace.z <= -0.2f || NDCSpace.y > 1.5f || NDCSpace.y <= -0.5f ) ? 0 : 1;
+        
+        // to avoid tip of grass get culled and flickered when camera rotate on X axis (head up) so all the grass around 10m radius will be rendered
+        bool aroundCam = distance(_CameraPosition, position.xyz) < 10.0f;
+        inView =  aroundCam || inView; 
+
+        bool withinDistance = distance(_CameraPosition, position.xyz) < _Distance;
+        _VoteBuffer[id.x] = inView * withinDistance;
+    }
 }
 
 // From GPU Gems Chapter 39 'Parallel Prefix Sum (Scan) with CUDA'
 [numthreads(NUM_THREAD_GROUPS_X, 1, 1)]
 void Scan(uint3 id : SV_DISPATCHTHREADID, uint groupIndex : SV_GROUPINDEX, uint3 _groupID : SV_GROUPID, uint3 groupThreadID : SV_GROUPTHREADID) {
+
     int tid = (int) id.x;
     int groupTID = (int) groupThreadID.x;
     int groupID = (int) _groupID.x;
@@ -95,8 +111,10 @@ void Scan(uint3 id : SV_DISPATCHTHREADID, uint groupIndex : SV_GROUPINDEX, uint3
 
     GroupMemoryBarrierWithGroupSync();
 
-    _ScanBuffer[2 * tid] = temp[2 * groupTID ];
-    _ScanBuffer[2 * tid + 1] = temp[2 * groupTID + 1];
+    if(id.x < _NumInstance / 2){
+        _ScanBuffer[2 * tid] = temp[2 * groupTID ];
+        _ScanBuffer[2 * tid + 1] = temp[2 * groupTID + 1];
+    }
 }
 
 // From GPU Gems Chapter 39 'Parallel Prefix Sum (Scan) with CUDA'
@@ -140,21 +158,27 @@ void ScanGroupSums(uint3 id : SV_DISPATCHTHREADID, uint groupIndex : SV_GROUPIND
     }
 
     GroupMemoryBarrierWithGroupSync();
-
-    _GroupSumArrayOut[2 * tid] = grouptemp[2 * tid];
-    _GroupSumArrayOut[2 * tid + 1] = grouptemp[2 * tid + 1];
+    if(tid < _NumOfGroups){
+        _GroupSumArrayOut[2 * tid] = grouptemp[2 * tid];
+        _GroupSumArrayOut[2 * tid + 1] = grouptemp[2 * tid + 1];
+    }
 }
+
 
 [numthreads(128, 1, 1)]
 void Compact(uint3 id : SV_DISPATCHTHREADID, uint groupIndex : SV_GROUPINDEX, uint3 _groupID : SV_GROUPID, uint3 groupThreadID : SV_GROUPTHREADID) {
-    uint tid = id.x;
-    uint groupID = _groupID.x;
-    uint groupSum = groupID.x > 0 ? _GroupSumArray[groupID.x] : 0;
-    bool inCamera = _VoteBuffer[id.x];
+    if(id.x < _NumInstance)
+    {
+
+        uint tid = id.x;
+        uint groupID = _groupID.x;
+        uint groupSum = groupID.x > 0 ? _GroupSumArray[groupID.x] : 0;
+        bool inCamera = _VoteBuffer[id.x];
     
-    if (inCamera == 1) {
-        InterlockedAdd(_ArgsBuffer[1], 1);
-        _CulledGrassOutputBuffer[_ScanBuffer[tid] + groupSum] = _GrassDataBuffer[tid];
+        if (inCamera == 1) {
+            InterlockedAdd(_ArgsBuffer[1], 1);
+            _CulledGrassOutputBuffer[_ScanBuffer[tid] + groupSum] = _GrassDataBuffer[tid];
+        }
     }
 }
 

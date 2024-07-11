@@ -4,15 +4,20 @@ Shader "Unlit/Grass"
     {
         _MainTex ("Texture", 2D) = "white" {}
         _TipColor("Tip Color", Color )= (1,1,1,1)
+        _HighGrassTipColor("High Grass Tip Color", Color) = (1,1,1,1)
         _RootColor("Root Color", Color )= (1,1,1,1)
-        _Droop("Droop", Range(0.0,10.0) ) = 1.0
-        [NoScaleOffset] _HeightMap("Height Map", 2D) = "gray"{}
-        _HeightStrength("Height Strength", Range(0, 10)) = 1 
+        _Droop("Droop", Range(0.0,2.0) ) = 1.0
+        [NoScaleOffset] _WindNoise("Wind Noise", 2D) = "white"{}
         _WindSpeed("Wind Speed", Range(0, 5) ) = 1
         _WindAmplitude("Wind Amplitude", Range(0, 1) ) = 1
+        _AmbientOcclusion("Ambient Occlusion", Range(0, 1) ) = 0
+        _ScaleYAxis("Scale Height", Range(0.5, 5) ) = 1
+        [NoScaleOffset] _GrassHeightMap("Grass Height Texture", 2D) = "gray"{}
+        _HeightStrength("Height Strength", Range(0, 10)) = 1 
+
         _FogColor ("Fog Color", Color) = (1, 1, 1)
-        _FogDensity ("Fog Density", Range(0.0, 1.0)) = 0.0
         _FogOffset ("Fog Offset", Range(0.0, 10.0)) = 0.0
+        _FogDensity ("Fog Density", Range(0.0, 1.0)) = 0.0
     }
     SubShader
     {
@@ -48,11 +53,14 @@ Shader "Unlit/Grass"
             #endif 
 
             
-            sampler2D _MainTex;
-            float4 _MainTex_ST;
-            float4 _TipColor, _RootColor, _FogColor;
+            sampler2D _MainTex, _WindNoise, _GrassHeightMap;
+            float4 _MainTex_ST, _GrassHeightMap_ST;
+            float4 _TipColor, _RootColor, _FogColor, _HighGrassTipColor;
             float _Droop, _HeightStrength, _WindSpeed, _WindAmplitude, _FogDensity, _FogOffset;
-            sampler2D _HeightMap;
+            float _Scale;
+            uint _NumInstanceDimension;
+            float _ChunkSize;
+            float _AmbientOcclusion , _ScaleYAxis;
 
             struct appdata
             {
@@ -66,7 +74,7 @@ Shader "Unlit/Grass"
                 float2 uv : TEXCOORD0;
                 float4 vertex : SV_POSITION;
                 float2 wUV: TEXCOORD1;
-                float3 worldPos : TEXCOORD2;
+                float4 worldPos : TEXCOORD2;
             };
 
 
@@ -96,23 +104,34 @@ Shader "Unlit/Grass"
 
                 float4 animationDirection = float4(0.0f, 0.0f, 1.0f, 0.0f);
                 animationDirection = normalize(RotateAroundYInDegrees(animationDirection,  idHash * 360.0f));
+                idHash = min(1, max(0, idHash));
                 
-                v.vertex = RotateAroundYInDegrees(v.vertex, idHash * 180);
-                v.vertex.xz += lerp(0.5f, 1, idHash) * _Droop * lerp(0.5f, 1.0f, idHash) * (v.uv.y * v.uv.y) * animationDirection.xz;
-                v.vertex.y +=  v.uv.y *(1 - tex2Dlod(_HeightMap, float4(worldUV,0,0)) + lerp(0, 0.2f, idHash))* _HeightStrength ;
+                //scale height
+                v.vertex.y *=  _ScaleYAxis;
+                //create cluster of grass
+                float heightValue = tex2Dlod(_GrassHeightMap, float4(worldUV,0,0)).r ;
+
+                v.vertex = RotateAroundYInDegrees(v.vertex, idHash * 360.0f);
+                v.vertex.y +=  v.uv.y * _HeightStrength * heightValue * lerp(1, 1.1f, idHash);
+                v.vertex.xz += _ScaleYAxis * _HeightStrength * heightValue * _Droop * lerp(0.3f, 1.0f, idHash) * (v.uv.y * v.uv.y) * animationDirection.xz;
+
+                //sway effect
+                //float sway = 
 
                 //wind animation
                 //float displacement = sin((worldUV.x + worldUV.y + _Time.y * _WindSpeed) * 8) * _WindAmplitude ;
                 //v.vertex.y -= v.uv.y * v.uv.y * displacement * 0.3f;
                 //displacement+= sin((worldUV.x + worldUV.y + _Time.y * lerp(1, 3, idHash ) * _WindSpeed)* 10) * lerp(0.1f, 0.5f, idHash) * _WindAmplitude;
                 //v.vertex.xz += (v.uv.y * v.uv.y ) * displacement / 2;
+                
 
                 float4 worldPos = float4(data+ v.vertex.xyz, 1);
                 
                 o.vertex = mul(UNITY_MATRIX_VP, worldPos);
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
                 o.wUV = worldUV;
-                o.worldPos = worldPos;
+                o.worldPos.xyz = worldPos;
+                o.worldPos.w = heightValue ;
 
                 return o;
             }
@@ -121,10 +140,16 @@ Shader "Unlit/Grass"
             {
                 // sample the texture
                 float4 col = tex2D(_MainTex, i.uv);
-                float4 color = lerp(_RootColor,_TipColor, i.uv.y);
 
-                //noob occlusion
-                color *= pow( i.uv.y, 0.9f);
+                float4 color = lerp(_RootColor,_TipColor, i.uv.y);
+                color = i.worldPos.w > 0.5f ? lerp(color, _HighGrassTipColor, pow(i.uv.y,5) ) : color; 
+
+
+                //ambient occlusion
+                float ambientFactor = (float) _ChunkSize / _NumInstanceDimension;
+                ambientFactor = 1-  min(1 - _AmbientOcclusion, ambientFactor);
+
+                color *=  pow(i.uv.y , ambientFactor);
                 
                 /* Fog */
                 #if IS_FOG

@@ -11,9 +11,9 @@ RWStructuredBuffer<GrassData> _GrassDataBuffer;
 float4 _Center;
 float _Dimension;
 uint _Density, _InstanceDimension, _ChunkInstances;
-uint _XOffset, _YOffset;
+uint _XOffset, _YOffset, _ChunkDimension;
 
-[numthreads(8,8,1)]
+[numthreads(32,32,1)]
 void InitializeGrass (uint3 id : SV_DispatchThreadID)
 {
     if(id.x < _InstanceDimension && id.y < _InstanceDimension){
@@ -33,7 +33,8 @@ void InitializeGrass (uint3 id : SV_DispatchThreadID)
         float3 worldPos = float3(xPos, yPos,zPos);
 
         float2 worldUV;
-        worldUV = (float2) id.xy/ _InstanceDimension;
+        worldUV = (float2) id.xy/ (_InstanceDimension * _ChunkDimension);
+        worldUV += float2(_XOffset, _YOffset) / _ChunkDimension;
 
         data.position = worldPos;
         data.worldUV = worldUV;

@@ -14,7 +14,7 @@ OcclusionCullingSettings:
 RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 9
-  m_Fog: 1
+  m_Fog: 0
   m_FogColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   m_FogMode: 3
   m_FogDensity: 0.01
@@ -503,10 +503,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cam: {fileID: 182774532}
   parent: {fileID: 2029054826}
-  uniformPlaneScale: 10
-  chunkDimension: 2
-  densityPerDimension: 2
-  numInstancePerChunkDimension: 100
+  uniformPlaneScale: 20
+  chunkDimension: 4
+  densityPerDimension: 4
+  numInstancePerChunkDimension: 50
   grassMesh: {fileID: -462981019419857548, guid: 964dc7fdf44c21a4d947ec7460f36fe1, type: 3}
   groundMat: {fileID: 2100000, guid: b9d0799a2de5b264cba65af5d7bd990f, type: 2}
   distanceCutoff: 500
