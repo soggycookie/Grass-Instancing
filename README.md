@@ -31,7 +31,7 @@ This topic took me 3 days just to have a solid grasp. Maybe the explaination abo
 ## Others
 
 Added and tweaked a few more settings
-![Swayed Grass](/Assets/Grass/Image/Sway.gif)
+![Swayed Grass](/Assets/Grass/Image/sway.gif)
 
 ## Tasks
 
