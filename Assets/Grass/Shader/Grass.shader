@@ -4,9 +4,12 @@ Shader "Unlit/Grass"
     {
         _MainTex ("Texture", 2D) = "white" {}
         _TipColor("Tip Color", Color )= (1,1,1,1)
-        _HighGrassTipColor("High Grass Tip Color", Color) = (1,1,1,1)
         _RootColor("Root Color", Color )= (1,1,1,1)
+        [Toggle] _IsTipColorOn("High Grass Tip Color On", Float) = 0
+        _HighGrassTipColor("High Grass Tip Color", Color) = (1,1,1,1)
+        _HighGrassTipFactor("High Grass Tip Factor", Range(0,10)) = 1
         _Droop("Droop", Range(0.0,2.0) ) = 1.0
+        _SwaySpeed("Sway Speed", Range(0,5) ) = 1
         [NoScaleOffset] _WindNoise("Wind Noise", 2D) = "white"{}
         _WindSpeed("Wind Speed", Range(0, 5) ) = 1
         _WindAmplitude("Wind Amplitude", Range(0, 1) ) = 1
@@ -62,7 +65,7 @@ Shader "Unlit/Grass"
             float _Scale;
             uint _NumInstanceDimension;
             float _ChunkSize;
-            float _AmbientOcclusion , _ScaleYAxis, _ScaleXAxis;
+            float _AmbientOcclusion, _SwaySpeed, _ScaleYAxis, _ScaleXAxis, _HighGrassTipFactor, _IsTipColorOn;
             float4 _ScaleXBaseOnY;
 
             struct appdata
@@ -122,8 +125,7 @@ Shader "Unlit/Grass"
                 v.vertex.xz += _ScaleYAxis * _HeightStrength * heightValue * _Droop * lerp(0.3f, 1.0f, idHash) * (v.uv.y * v.uv.y) * animationDirection.xz;
 
                 //sway effect
-                v.vertex.xz += sin((_Time.y * max(heightValue,idHash) * 1.5f )) * v.uv.y * v.uv.y * 0.5f * animationDirection.xz;
-                v.vertex.y -= sin(_Time.y * 0.1f ) * v.uv.y * v.uv.y;
+                v.vertex.xz += sin((_Time.y * max(0.1f, idHash) * _SwaySpeed )) * v.uv.y * v.uv.y * 0.5f * animationDirection.xz;
 
                 //wind animation
                 //float displacement = sin((worldUV.x + worldUV.y + _Time.y * _WindSpeed) * 8) * _WindAmplitude ;
@@ -149,7 +151,7 @@ Shader "Unlit/Grass"
                 float4 col = tex2D(_MainTex, i.uv);
 
                 float4 color = lerp(_RootColor,_TipColor, i.uv.y);
-                color = i.worldPos.w > 0.5f ? lerp(color, _HighGrassTipColor, pow(i.uv.y,5) ) : color; 
+                color = lerp(color, _HighGrassTipColor, pow(i.uv.y, _HighGrassTipFactor) * i.worldPos.w * _IsTipColorOn ) ; 
 
 
                 //ambient occlusion base on density
