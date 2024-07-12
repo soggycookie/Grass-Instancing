@@ -12,6 +12,8 @@ Shader "Unlit/Grass"
         _WindAmplitude("Wind Amplitude", Range(0, 1) ) = 1
         _AmbientOcclusion("Ambient Occlusion", Range(0, 1) ) = 0
         _ScaleYAxis("Scale Height", Range(0.5, 5) ) = 1
+        _ScaleXAxis("Scale Width", Range(0.5, 5) ) = 1
+        _ScaleXBaseOnY("Scale X Base on height map", Vector) = (0,0,0,0)
         [NoScaleOffset] _GrassHeightMap("Grass Height Texture", 2D) = "gray"{}
         _HeightStrength("Height Strength", Range(0, 10)) = 1 
 
@@ -60,7 +62,8 @@ Shader "Unlit/Grass"
             float _Scale;
             uint _NumInstanceDimension;
             float _ChunkSize;
-            float _AmbientOcclusion , _ScaleYAxis;
+            float _AmbientOcclusion , _ScaleYAxis, _ScaleXAxis;
+            float4 _ScaleXBaseOnY;
 
             struct appdata
             {
@@ -106,17 +109,21 @@ Shader "Unlit/Grass"
                 animationDirection = normalize(RotateAroundYInDegrees(animationDirection,  idHash * 360.0f));
                 idHash = min(1, max(0, idHash));
                 
-                //scale height
+                //scale
                 v.vertex.y *=  _ScaleYAxis;
+                v.vertex.xz *= _ScaleXAxis / 2;
+
                 //create cluster of grass
                 float heightValue = tex2Dlod(_GrassHeightMap, float4(worldUV,0,0)).r ;
 
                 v.vertex = RotateAroundYInDegrees(v.vertex, idHash * 360.0f);
                 v.vertex.y +=  v.uv.y * _HeightStrength * heightValue * lerp(1, 1.1f, idHash);
+                v.vertex.xz *= _ScaleXBaseOnY.x == 0 || _ScaleXBaseOnY.y == 0 ? 1 : pow( _ScaleXBaseOnY.y / _ScaleXBaseOnY.x, heightValue)  ;
                 v.vertex.xz += _ScaleYAxis * _HeightStrength * heightValue * _Droop * lerp(0.3f, 1.0f, idHash) * (v.uv.y * v.uv.y) * animationDirection.xz;
 
                 //sway effect
-                //float sway = 
+                v.vertex.xz += sin((_Time.y * max(heightValue,idHash) * 1.5f )) * v.uv.y * v.uv.y * 0.5f * animationDirection.xz;
+                v.vertex.y -= sin(_Time.y * 0.1f ) * v.uv.y * v.uv.y;
 
                 //wind animation
                 //float displacement = sin((worldUV.x + worldUV.y + _Time.y * _WindSpeed) * 8) * _WindAmplitude ;
@@ -145,7 +152,7 @@ Shader "Unlit/Grass"
                 color = i.worldPos.w > 0.5f ? lerp(color, _HighGrassTipColor, pow(i.uv.y,5) ) : color; 
 
 
-                //ambient occlusion
+                //ambient occlusion base on density
                 float ambientFactor = (float) _ChunkSize / _NumInstanceDimension;
                 ambientFactor = 1-  min(1 - _AmbientOcclusion, ambientFactor);
 
