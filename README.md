@@ -28,11 +28,17 @@ Because of GPU Instancing, we can not get a free frustum culling like other game
 
 This topic took me 3 days just to have a solid grasp. Maybe the explaination abobe is not comprehensible and easy to understand enough. I suggest you take your time to read the actual article to get the grip of it.
 
+## Others
+
+Added and tweaked a few more settings
+![Swayed Grass](/Assets/Grass/Image/Sway.gif)
+
 ## Tasks
 
 - :white_check_mark: ~~Fog~~
 - :white_check_mark: ~~GPU Frustum Culling~~
 - :white_check_mark: ~~Chunk System~~
+- :white_check_mark: ~~LOD~~
 - :x: Better wind system
 - :x: Occlusion culling
 - :x: Post processing
