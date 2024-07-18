@@ -23,7 +23,7 @@ Now we implement it. With my dumb shader knowledge, I implemented a basic sine w
 
 Because of GPU Instancing, we can not get a free frustum culling like other game objects. We have to implement one ourself. We can achieve this with Vote, Scan and Compact method.
 - Vote: each blade is checked if it's inside camera view, and write it down into a ComputeBuffer.
-- Scan: a problem with Compute Shader is that it can not skip an element in position buffer array, so we can not just skip them grass being outsite of view. We have to modify the array, write down the positions of grass being valid consecutively and discard the rest. To achieve this, we have to implement Parallel Prefix Sum Algorithm[^1] and run it on the previous vote array buffer. But this algorithm only run in a single thread group which are 1024 threads - in other word, 1024 blades of grass. We have to perform this algorithm on many thread groups. However, thread groups do not share together, example: [0,0,1,0,0,1,1,1], we dispatch into 2 thread groups, 4 threads each group; thread group 1 run on half of the array [0,0,1,0] -> [0,0,1,1]; thread group 2 run on the rest [0,1,1,1] -> [0,1,2,3]. You can clearly see that 2 thread groups run independantly. To solve this this problem, we construct a new buffer array contains all the last element of each thread group (it's the sum of all elements in each thread group) and run the algorithm on it again, example: 1 from first thread group, 3 from second -> [1,3]; run algorithm [1,3] -> [1,4].
+- Scan: a problem with Compute Shader is that it can not skip an element in position buffer array, so we can not just skip them grass being outsite of view. We have to modify the array, write down the positions of grass being valid consecutively and discard the rest. To achieve this, we have to implement Parallel Prefix Sum Algorithm[^1], which can be used to sort array, and run it on the previous vote array buffer. But this algorithm only run in a single thread group which are 1024 threads - in other word, 1024 blades of grass. We have to perform this algorithm on many thread groups. However, thread groups do not share together, example: [0,0,1,0,0,1,1,1], we dispatch into 2 thread groups, 4 threads each group; thread group 1 run on half of the array [0,0,1,0] -> [0,0,1,1]; thread group 2 run on the rest [0,1,1,1] -> [0,1,2,3]. You can clearly see that 2 thread groups run independantly. To solve this this problem, we construct a new buffer array contains all the last element of each thread group (it's the sum of all elements in each thread group) and run the algorithm on it again, example: 1 from first thread group, 3 from second -> [1,3]; run algorithm [1,3] -> [1,4].
 - Compact: Final step, IDK how to demonstrate this but this is an example: we got [0,0,1,1] and [0,1,2,3] from 2 thread groups and [1,4] from group sum array. The first half, it's right, no more modification but the second half, it need to be added the sum of first half, which stores in group sum array, to be done. Now, we have [0,0,1,1] and [1,2,3,4], I seperate 2 arrays for better visualization but they are actually one big array [0,0,1,1,1,2,3,4]. Now the final part, create a new ComputeBuffer array, culledPositionBuffer; check if the vote buffer's value at index i is equal to 1, if no, skip; if yes, take the value groupSumBufferArray[i], example : groupSumBufferArray[i] = 2. We write down into culledPositionBuffer that valute at index 2 = positionBuffer[i].
 
 This topic took me 3 days just to have a solid grasp. Maybe the explaination abobe is not comprehensible and easy to understand enough. I suggest you take your time to read the actual article to get the grip of it.
@@ -33,6 +33,10 @@ This topic took me 3 days just to have a solid grasp. Maybe the explaination abo
 Added and tweaked a few more settings
 ![Swayed Grass](/Assets/Grass/Image/sway.gif)
 
+## Wind System
+
+HLSL does not have built-in perlin noise, so I implemented one by using power of CTRL C - CTRL V. After that, the noise is rendered into a render texture, let grass shader sample it. 
+![Perlin Noise Wind System](/Assets/Grass/Image/wind.gif)
 ## Tasks
 
 - :white_check_mark: ~~Fog~~
@@ -47,7 +51,7 @@ Added and tweaked a few more settings
 - [Parallel Prefix Sum](https://developer.nvidia.com/gpugems/gpugems3/part-vi-gpu-computing/chapter-39-parallel-prefix-sum-scan-cuda)
 - [Acerola's project](https://github.com/GarrettGunnell/Grass)
 - [Good tutorial on explaining Parallel Prefix Sum](https://www.youtube.com/watch?v=lavZl_wEbPE)
-
+- [HLSL perlin noise](https://gist.github.com/fadookie/25adf86ae7e2753d717c#file-noisesimplex-cginc)
 ## Other Resources
 
 [Catlikecoding](https://catlikecoding.com/): He provides tons of good tutorial, like Rendering, GPU Instancing, Compute Shader....
