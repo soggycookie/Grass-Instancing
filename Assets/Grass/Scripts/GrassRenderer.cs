@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEditor;
 using UnityEngine;
 using static System.Runtime.InteropServices.Marshal;
 
@@ -33,30 +35,86 @@ public class GrassRenderer : MonoBehaviour
     private float scaledDimension;
     GrassChunk[] chunks;
 
-    [Space(5)]
-    [Header("Grass settings")]
-    public int densityPerDimension = 1, numInstancePerChunkDimension;
-    public Mesh grassMeshLOD, grassMesh ;
-    private int numInstancePerChunk, numPerDimension;
-    public Material groundMat;
-    [Range(0,1000)]
-    public float distanceCutoff;
-    [Range(0, 1000)]
-    public float distanceLOD;
-
     [Header("Shader")]
     public Material grassMaterial;
-    public ComputeShader grassInitializerCS, cullGrassCS;
+    public ComputeShader grassInitializerCS, cullGrassCS, windNoiseCS;
 
     //Buffer
     private ComputeBuffer voteBuffer, scanBuffer, groupSumArrayBuffer, scannedGroupSumBuffer;
     private int numThreadGroups, numVoteThreadGroups, numGroupScanThreadGroups;
 
+    [Space(5)]
+    [Header("Grass technical settings")]
+    public int densityPerDimension = 1;
+    public int numInstancePerChunkDimension;
+    public Mesh grassMeshLOD, grassMesh;
+    private int numInstancePerChunk, numPerDimension;
+    public Material groundMat;
+    [Range(0, 1000)]
+    public float distanceCutoff;
+    [Range(0, 1000)]
+    public float distanceLOD;
+    public bool isFogOn;
+    public bool changeMatWhilePlay;
+
+    [Space(5)]
+    [Header("Grass Settings")]
+    public Color tipColor;
+    public Color rootColor;
+    public bool highGrassTipColorOn;
+    public Color highGrassTipColor;
+    [Range(0, 10)]
+    public float highGrassTipFactor;
+
+    [Space(5)]
+    [Range(0, 2)]
+    public float grassCurve;
+
+    [Space(5)]
+    [Range(0, 5)]
+    public float swaySpeed;
+    [Tooltip("This should take a extreme small scale value if the area is small")]
+    [Range(0.00001f, 2)]
+    public float windTextureScale = 0.03f;
+    [Range(0, 5)]
+    public float windSpeed = 1;
+    [Range(0, 5)]
+    public float windAmplitude;
+    [Tooltip("To read only")]
+    public RenderTexture windMap;
+
+    [Space(5)]
+    public bool ambientBaseOnDensity;
+    [Range(0, 1)]
+    public float ambientOcclusion;
+
+    [Space(5)]
+    public float scaleHeight;
+    public float scaleWidth;
+    public Vector2 scaleXBaseOnHeightMap;
+
+    [Space(5)]
+    public Texture grassHeightTexture;
+    [Range(0, 10)]
+    public float heightStrength;
+
+    [Space(5)]
+    [Header("Fog Settings")]
+    public Color fogColor;
+    [Range(0, 10)]
+    public float fogOffset;
+    [Range(0, 1)]
+    public float fogDensity;
+
+
+
+
+
     //for DrawMeshInstancedIndirect
     private uint[] argsLOD;
     private uint[] args;
     private Bounds bound;
-    public Boolean isFogOn;
+
 
     private void OnEnable()
     {
@@ -91,7 +149,7 @@ public class GrassRenderer : MonoBehaviour
         //set up buffer for DrawMeshInstancedIndirect
         argsLOD = new uint[5] { 0, 0, 0, 0, 0 };
         argsLOD[0] = (uint)grassMeshLOD.GetIndexCount(0);
-        argsLOD[1] = (uint) 0;
+        argsLOD[1] = (uint)0;
         argsLOD[2] = (uint)grassMeshLOD.GetIndexStart(0);
         argsLOD[3] = (uint)grassMeshLOD.GetBaseVertex(0);
 
@@ -105,8 +163,30 @@ public class GrassRenderer : MonoBehaviour
 
         fog = cam.GetComponent<Fog>();
 
+        WindMapInit();
         InitializeGrassChunks();
 
+    }
+
+    private void WindMapInit()
+    {
+        windMap = new RenderTexture(216, 216, 0, RenderTextureFormat.RGFloat)
+        {
+            enableRandomWrite = true
+
+        };
+
+        windMap.Create();
+
+        windNoiseCS.SetTexture(0, "_WindNoise", windMap);
+        windNoiseCS.SetFloat("_Time", 0);
+        UpdateWindMap();
+    }
+
+    private void UpdateWindMap()
+    {
+        windNoiseCS.SetFloat("_Time", (float)EditorApplication.timeSinceStartup * 0.2f);
+        windNoiseCS.Dispatch(0, 64, 64, 1);
     }
 
     private void InitializeGrassChunks()
@@ -122,7 +202,7 @@ public class GrassRenderer : MonoBehaviour
 
                 Vector3 boundCenter;
                 boundCenter = new Vector3(-halfFieldSize, 0, -halfFieldSize);
-                boundCenter += new Vector3((i + 1) * chunkSize  - chunkSize/2 , 0, (j + 1) * chunkSize - chunkSize / 2);
+                boundCenter += new Vector3((i + 1) * chunkSize - chunkSize / 2, 0, (j + 1) * chunkSize - chunkSize / 2);
 
                 Bounds chunkBound = new Bounds(boundCenter, new Vector3(chunkSize, 20.0f, chunkSize));
 
@@ -153,13 +233,12 @@ public class GrassRenderer : MonoBehaviour
                 mat.SetInt("_NumInstanceDimension", numPerDimension);
                 mat.SetFloat("_ChunkSize", chunkSize);
                 chunk.material = mat;
-
                 chunks[j + i * chunkDimension] = chunk;
             }
         }
     }
 
-    void CullGrass(bool lod,GrassChunk chunk, Matrix4x4 VP)
+    void CullGrass(bool lod, GrassChunk chunk, Matrix4x4 VP)
     {
         //Reset Args
         if (lod)
@@ -205,6 +284,7 @@ public class GrassRenderer : MonoBehaviour
 
         chunk.material.SetBuffer("grassDataBuffer", chunk.culledPositionBuffer);
 
+        chunk.material.SetTexture("_WindNoise", windMap);
     }
 
     void CreateTerrain(Vector3 center)
@@ -219,6 +299,38 @@ public class GrassRenderer : MonoBehaviour
 
         //get bound
         bound = renderer.bounds;
+    }
+
+    private void UpdateMaterialWhilePlay(GrassChunk chunk)
+    {
+        if (!changeMatWhilePlay)
+        {
+            return;
+        }
+
+        Material mat = chunk.material;
+
+        mat.SetColor("_TipColor", tipColor);
+        mat.SetColor("_RootColor", rootColor);
+        mat.SetColor("_HighGrassTipColor", highGrassTipColor);
+        mat.SetInt("_IsTipColorOn", highGrassTipColorOn ? 1 : 0);
+        mat.SetFloat("_HighGrassTipFactor", highGrassTipFactor);
+        mat.SetFloat("_Droop", grassCurve);
+        mat.SetFloat("_SwaySpeed", swaySpeed);
+        mat.SetFloat("_WindAmplitude", windAmplitude);
+        windNoiseCS.SetFloat("_WindSpeed", windSpeed);
+        windNoiseCS.SetFloat("_Scale", windTextureScale);
+        mat.SetInt("_DensityAmbient", ambientBaseOnDensity ? 1 : 0);
+        mat.SetFloat("_AmbientOcclusion", ambientOcclusion);
+        mat.SetFloat("_ScaleYAxis", scaleHeight);
+        mat.SetFloat("_ScaleXAxis", scaleWidth);
+        mat.SetVector("_ScaleXBaseOnY", scaleXBaseOnHeightMap);
+        mat.SetTexture("_GrassHeightMap", grassHeightTexture);
+        mat.SetFloat("_HeightStrength", heightStrength);
+        mat.SetColor("_FogColor", fogColor);
+        mat.SetFloat("_FogOffset", fogOffset);
+        mat.SetFloat("_FogDensity", fogDensity);
+
     }
 
     private void Update()
@@ -240,27 +352,16 @@ public class GrassRenderer : MonoBehaviour
             }
 
             lod = Vector3.Distance(cam.transform.position, chunks[i].bound.center) > distanceLOD;
+
+            UpdateMaterialWhilePlay(chunks[i]);
+            UpdateWindMap();
             CullGrass(lod, chunks[i], VP);
+            Graphics.DrawMeshInstancedIndirect(lod ? grassMeshLOD : grassMesh, 0, chunks[i].material, chunks[i].bound, lod ? chunks[i].argsBufferLOD : chunks[i].argsBuffer);
 
-            Graphics.DrawMeshInstancedIndirect(lod ? grassMeshLOD :grassMesh, 0, chunks[i].material, chunks[i].bound,lod ? chunks[i].argsBufferLOD : chunks[i].argsBuffer);
-        
-        
+
         }
 
-        
-    }
 
-    private void OnValidate()
-    {
-        if (uniformPlaneScale < 1.0f)
-        {
-            uniformPlaneScale = 1.0f;
-        }
-
-        if (numInstancePerChunkDimension <= 0)
-        {
-            numInstancePerChunkDimension = 1;
-        }
     }
 
     private void ReleaseChunkBuffer(GrassChunk chunk)
@@ -288,6 +389,9 @@ public class GrassRenderer : MonoBehaviour
         {
             ReleaseChunkBuffer(chunks[i]);
         }
+
+        windMap.Release();
+        windMap = null;
     }
 
     private void OnDrawGizmos()
@@ -296,6 +400,18 @@ public class GrassRenderer : MonoBehaviour
         for (int i = 0; i < chunks.Length; i++)
         {
             Gizmos.DrawWireCube(chunks[i].bound.center, chunks[i].bound.size);
+        }
+    }
+    private void OnValidate()
+    {
+        if (uniformPlaneScale < 1.0f)
+        {
+            uniformPlaneScale = 1.0f;
+        }
+
+        if (numInstancePerChunkDimension <= 0)
+        {
+            numInstancePerChunkDimension = 1;
         }
     }
 }

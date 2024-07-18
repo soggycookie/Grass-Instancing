@@ -51,5 +51,5 @@ Added and tweaked a few more settings
 ## Other Resources
 
 [Catlikecoding](https://catlikecoding.com/): He provides tons of good tutorial, like Rendering, GPU Instancing, Compute Shader....
-
+[Article about Perlin Noise](https://rtouti.github.io/graphics/perlin-noise-algorithm)
 [^1]: https://developer.nvidia.com/gpugems/gpugems3/part-vi-gpu-computing/chapter-39-parallel-prefix-sum-scan-cuda

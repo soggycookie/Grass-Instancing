@@ -1,0 +1,66 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Grass
+  m_Shader: {fileID: 4800000, guid: e1d0d3d7ae2f8144681274c3988249a3, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords:
+  - _ISTIPCOLORON_ON
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _GrassHeightMap:
+        m_Texture: {fileID: 2800000, guid: 4a066fc3839d0274cb04da117baf5ca3, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _HeightMap:
+        m_Texture: {fileID: 2800000, guid: 1a1d1620786e2e840bf10c05deac8502, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WindNoise:
+        m_Texture: {fileID: 2800000, guid: 4a066fc3839d0274cb04da117baf5ca3, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AmbientOcclusion: 0
+    - _DensityAmbient: 0
+    - _Droop: 0.5
+    - _FogDensity: 0.03
+    - _FogOffset: 5
+    - _HeightStrength: 4
+    - _HighGrassTipFactor: 3
+    - _IsTipColorOn: 1
+    - _Scale: 0
+    - _ScaleXAxis: 3
+    - _ScaleYAxis: 1
+    - _SwaySpeed: 2
+    - _WindAmplitude: 4
+    - _WindSpeed: 1
+    m_Colors:
+    - _FogColor: {r: 0.8113208, g: 0.8113208, b: 0.8113208, a: 1}
+    - _HighGrassTipColor: {r: 0.8, g: 0.8, b: 0.33333334, a: 1}
+    - _RootColor: {r: 0.13333334, g: 0.33333334, b: 0.10980392, a: 1}
+    - _ScaleXBaseOnY: {r: 0, g: 0, b: 0, a: 0}
+    - _TipColor: {r: 0.29803923, g: 0.73333335, b: 0.09019608, a: 1}
+    - _WindDirection: {r: 0, g: 0, b: 0, a: 0}
+  m_BuildTextureStacks: []

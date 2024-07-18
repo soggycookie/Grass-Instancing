@@ -1,0 +1,20 @@
+
+#pragma kernel CSMain
+#include "noiseSimplex.compute"
+
+RWTexture2D<float> _WindNoise;
+float _Time;
+float _Scale;
+float _WindSpeed;
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+
+    float h = 0.0;
+    h =  snoise(id.xy * _Scale + _Time * _WindSpeed) ;
+    _WindNoise[id.xy] = h;
+}
+
+
+
