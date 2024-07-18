@@ -54,6 +54,6 @@ HLSL does not have built-in perlin noise, so I implemented one by using power of
 - [HLSL perlin noise](https://gist.github.com/fadookie/25adf86ae7e2753d717c#file-noisesimplex-cginc)
 ## Other Resources
 
-[Catlikecoding](https://catlikecoding.com/): He provides tons of good tutorial, like Rendering, GPU Instancing, Compute Shader....
-[Article about Perlin Noise](https://rtouti.github.io/graphics/perlin-noise-algorithm)
+- [Catlikecoding](https://catlikecoding.com/): He provides tons of good tutorial, like Rendering, GPU Instancing, Compute Shader....
+- [Article about Perlin Noise](https://rtouti.github.io/graphics/perlin-noise-algorithm)
 [^1]: https://developer.nvidia.com/gpugems/gpugems3/part-vi-gpu-computing/chapter-39-parallel-prefix-sum-scan-cuda

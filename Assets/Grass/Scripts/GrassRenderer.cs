@@ -372,6 +372,8 @@ public class GrassRenderer : MonoBehaviour
         chunk.culledPositionBuffer = null;
         chunk.argsBufferLOD.Release();
         chunk.argsBufferLOD = null;
+        chunk.argsBuffer.Release();
+        chunk.argsBuffer = null;
     }
 
     private void OnDisable()

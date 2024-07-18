@@ -47,14 +47,15 @@ void Vote(uint3 id : SV_DispatchThreadID) {
         NDCSpace.z = -clipspace.w;
 
         // screen space [0,1]
-        // create a margin on x axis to avoid flickering when camera slightly move
+        // create a margin on x,y axis to avoid flickering when camera slightly move
         // also check if object is behind camera
 
-        bool inView =( NDCSpace.x < - pow(0.2f, NDCSpace.z >= 1 ? NDCSpace.z : 1) || NDCSpace.x > pow(1.2f, 1 / max(1, NDCSpace.z)) 
-                        || NDCSpace.z <= -0.2f || NDCSpace.y > 1.5f || NDCSpace.y <= -0.5f ) ? 0 : 1;
+        //bool inView =( NDCSpace.x < - pow(0.2f, NDCSpace.z >= 1 ? NDCSpace.z : 1) || NDCSpace.x > pow(1.2f, 1 / max(1, NDCSpace.z)) 
+        //                || NDCSpace.z <= -0.2f || NDCSpace.y > 1.5f || NDCSpace.y <= -0.5f ) ? 0 : 1;        
+
                 
-        //bool inView =( NDCSpace.x < - 0.2f || NDCSpace.x > 1.2f 
-        //                || NDCSpace.z <= -0.2f || NDCSpace.y > 1.5f || NDCSpace.y <= -0.5f ) ? 0 : 1;
+        bool inView =( NDCSpace.x < - 0.2f || NDCSpace.x > 1.2f 
+                        || NDCSpace.z <= -0.2f || NDCSpace.y > 1.5f || NDCSpace.y <= -0.5f ) ? 0 : 1;
         
         // to avoid tip of grass get culled and flickered when camera rotate on X axis (head up) so all the grass around 10m radius will be rendered
         bool aroundCam = distance(_CameraPosition, position.xyz) < 10.0f;
