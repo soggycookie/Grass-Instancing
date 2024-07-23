@@ -1,0 +1,47 @@
+#pragma kernel CSMain
+
+struct GrassData {
+    float3 position;
+    float2 worldUV;
+};
+
+float4x4 MATRIX_VP;
+float _CameraHalfFOV;
+Texture2D HZB_Depth;
+float3 _CameraPosition;
+
+RWStructuredBuffer<uint> _ArgsBuffer;
+RWStructuredBuffer<uint> _TempArgsBuffer;
+RWStructuredBuffer<GrassData> _CulledGrassOutputBuffer;
+RWStructuredBuffer<GrassData> _OcclusionBuffer;
+
+[numthreads(128,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    if(id.x >= _TempArgsBuffer[1]) return;
+
+    float3 wPos = _CulledGrassOutputBuffer[id.x].position;
+    
+    float4 clipSpacePos = mul(MATRIX_VP, float4(wPos,1));
+	clipSpacePos.xyz /= clipSpacePos.w;
+	clipSpacePos.xy = clipSpacePos.xy * 0.5 + 0.5;
+
+    float screenWidth = 1.0f / (tan(_CameraHalfFOV * 3.1415926 / 180) * (clipSpacePos.w)) * 1024;
+
+    uint mips = ( uint) clamp(log2(screenWidth), 0, 7);
+
+    uint texScale = 1 << mips;
+	uint2 uv = uint2( clipSpacePos.xy * (1024 / texScale));
+
+    float minD =min( min(HZB_Depth.mips[mips][uv.xy + uint2(0, 0)].r, HZB_Depth.mips[mips][uv.xy + uint2(0, 1)].r), min(HZB_Depth.mips[mips][uv.xy + uint2(1, 0)].r, HZB_Depth.mips[mips][uv.xy + uint2(1, 1)].r));
+    bool aroundCam = distance(_CameraPosition, wPos.xyz) < 10.0f;
+	
+    if (minD < clipSpacePos.z || aroundCam ) {
+        int currentIndex = 0;
+        InterlockedAdd(_ArgsBuffer[1], 1, currentIndex);
+	    _OcclusionBuffer[currentIndex] = _CulledGrassOutputBuffer[id.x];
+    }
+
+
+
+}

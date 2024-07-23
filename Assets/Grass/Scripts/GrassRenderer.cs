@@ -18,8 +18,10 @@ public class GrassRenderer : MonoBehaviour
         public Bounds bound;
         public ComputeBuffer argsBuffer;
         public ComputeBuffer argsBufferLOD;
+        public ComputeBuffer tempBuffer;
         public ComputeBuffer positionBuffer;
         public ComputeBuffer culledPositionBuffer;
+        public ComputeBuffer occlusionBuffer;
         public Material material;
     }
 
@@ -37,12 +39,13 @@ public class GrassRenderer : MonoBehaviour
 
     [Header("Shader")]
     public Material grassMaterial;
-    public ComputeShader grassInitializerCS, cullGrassCS, windNoiseCS;
+    public ComputeShader grassInitializerCS, cullGrassCS, windNoiseCS, occlusionCullingCS;
 
     //Buffer
     private ComputeBuffer voteBuffer, scanBuffer, groupSumArrayBuffer, scannedGroupSumBuffer;
     private int numThreadGroups, numVoteThreadGroups, numGroupScanThreadGroups;
 
+    #region grass technical settings
     [Space(5)]
     [Header("Grass technical settings")]
     public int densityPerDimension = 1;
@@ -56,7 +59,10 @@ public class GrassRenderer : MonoBehaviour
     public float distanceLOD;
     public bool isFogOn;
     public bool changeMatWhilePlay;
+    public bool HI_Z_ON;
+    #endregion
 
+    #region Grass Settings
     [Space(5)]
     [Header("Grass Settings")]
     public Color tipColor;
@@ -97,6 +103,9 @@ public class GrassRenderer : MonoBehaviour
     public Texture grassHeightTexture;
     [Range(0, 10)]
     public float heightStrength;
+    [Space(5)]
+    [Range(0, 1)]
+    public float darkness;
 
     [Space(5)]
     [Header("Fog Settings")]
@@ -105,7 +114,7 @@ public class GrassRenderer : MonoBehaviour
     public float fogOffset;
     [Range(0, 1)]
     public float fogDensity;
-
+    #endregion
 
 
 
@@ -115,7 +124,16 @@ public class GrassRenderer : MonoBehaviour
     private uint[] args;
     private Bounds bound;
 
+    #region HI-Z
+    public RenderTexture hzDepth;
 
+
+    public void SetDephTexture(RenderTexture tx)
+    {
+        hzDepth = tx;
+    }
+
+    #endregion
     private void OnEnable()
     {
         //initialize variables
@@ -124,6 +142,7 @@ public class GrassRenderer : MonoBehaviour
         numInstancePerChunk = numPerDimension * numPerDimension;
 
         numThreadGroups = Mathf.CeilToInt(numInstancePerChunk / 128.0f);
+        //to perform parallel prefix sum, array must be power of 2
         if (numThreadGroups > 128)
         {
             int powerOfTwo = 128;
@@ -137,15 +156,28 @@ public class GrassRenderer : MonoBehaviour
             while (128 % numThreadGroups != 0)
                 numThreadGroups++;
         }
+
         numVoteThreadGroups = Mathf.CeilToInt(numInstancePerChunk / 128.0f);
         numGroupScanThreadGroups = Mathf.CeilToInt(numThreadGroups / 1024.0f);
-        //numGroupScanThreadGroups = Mathf.CeilToInt(numInstancePerChunk / 1024.0f);
 
         voteBuffer = new ComputeBuffer(numInstancePerChunk, 4);
         scanBuffer = new ComputeBuffer(numInstancePerChunk, 4);
         groupSumArrayBuffer = new ComputeBuffer(numThreadGroups, 4);
         scannedGroupSumBuffer = new ComputeBuffer(numThreadGroups, 4);
 
+        CreateIndirectArgBuffer();
+        CreateTerrain(Vector3.zero);
+
+
+        fog = cam.GetComponent<Fog>();
+
+        WindMapInit();
+        InitializeGrassChunks();
+
+    }
+
+    private void CreateIndirectArgBuffer()
+    {
         //set up buffer for DrawMeshInstancedIndirect
         argsLOD = new uint[5] { 0, 0, 0, 0, 0 };
         argsLOD[0] = (uint)grassMeshLOD.GetIndexCount(0);
@@ -158,14 +190,6 @@ public class GrassRenderer : MonoBehaviour
         args[1] = (uint)0;
         args[2] = (uint)grassMesh.GetIndexStart(0);
         args[3] = (uint)grassMesh.GetBaseVertex(0);
-        CreateTerrain(Vector3.zero);
-
-
-        fog = cam.GetComponent<Fog>();
-
-        WindMapInit();
-        InitializeGrassChunks();
-
     }
 
     private void WindMapInit()
@@ -207,13 +231,23 @@ public class GrassRenderer : MonoBehaviour
                 Bounds chunkBound = new Bounds(boundCenter, new Vector3(chunkSize, 20.0f, chunkSize));
 
                 GrassChunk chunk = new GrassChunk();
+
                 chunk.bound = chunkBound;
                 chunk.argsBufferLOD = new ComputeBuffer(1, 5 * sizeof(uint), ComputeBufferType.IndirectArguments);
                 chunk.argsBuffer = new ComputeBuffer(1, 5 * sizeof(uint), ComputeBufferType.IndirectArguments);
+                
+                if (HI_Z_ON)
+                {
+                    chunk.tempBuffer = new ComputeBuffer(1, 5 * sizeof(uint), ComputeBufferType.IndirectArguments);
+                    chunk.tempBuffer.SetData(new uint[5] { 0, 0, 0, 0, 0 });
+                }
+
                 chunk.argsBufferLOD.SetData(argsLOD);
                 chunk.argsBuffer.SetData(args);
+
                 chunk.positionBuffer = new ComputeBuffer(numInstancePerChunk, SizeOf(typeof(GrassData)));
                 chunk.culledPositionBuffer = new ComputeBuffer(numInstancePerChunk, SizeOf(typeof(GrassData)));
+                chunk.occlusionBuffer = new ComputeBuffer(numInstancePerChunk, SizeOf(typeof(GrassData)));
 
                 grassInitializerCS.SetInt("_YOffset", j);
                 grassInitializerCS.SetInt("_XOffset", i);
@@ -249,16 +283,17 @@ public class GrassRenderer : MonoBehaviour
         {
             chunk.argsBuffer.SetData(args);
         }
+        if(HI_Z_ON) chunk.tempBuffer.SetData(new uint[5] { 0, 0, 0, 0, 0 });
 
         // Vote
         cullGrassCS.SetFloat("_ScaleY", chunk.material.GetFloat("_ScaleYAxis"));
         cullGrassCS.SetFloat("_XAxisRotation", cam.transform.rotation.eulerAngles.x);
         cullGrassCS.SetMatrix("MATRIX_VP", VP);
-        cullGrassCS.SetBuffer(0, "_GrassDataBuffer", chunk.positionBuffer);
-        cullGrassCS.SetBuffer(0, "_VoteBuffer", voteBuffer);
         cullGrassCS.SetVector("_CameraPosition", cam.transform.position);
         cullGrassCS.SetFloat("_Distance", distanceCutoff);
         cullGrassCS.SetInt("_NumInstance", numInstancePerChunk);
+        cullGrassCS.SetBuffer(0, "_GrassDataBuffer", chunk.positionBuffer);
+        cullGrassCS.SetBuffer(0, "_VoteBuffer", voteBuffer);
         cullGrassCS.Dispatch(0, numVoteThreadGroups, 1, 1);
 
         // Scan Instances
@@ -277,12 +312,45 @@ public class GrassRenderer : MonoBehaviour
         cullGrassCS.SetBuffer(3, "_GrassDataBuffer", chunk.positionBuffer);
         cullGrassCS.SetBuffer(3, "_VoteBuffer", voteBuffer);
         cullGrassCS.SetBuffer(3, "_ScanBuffer", scanBuffer);
-        cullGrassCS.SetBuffer(3, "_ArgsBuffer", lod ? chunk.argsBufferLOD : chunk.argsBuffer);
+        //cullGrassCS.SetBuffer(3, "_ArgsBuffer", lod ? chunk.argsBufferLOD : chunk.argsBuffer);
+        cullGrassCS.SetBuffer(3, "_ArgsBuffer", HI_Z_ON ? chunk.tempBuffer : (lod ? chunk.argsBufferLOD : chunk.argsBuffer) );
         cullGrassCS.SetBuffer(3, "_CulledGrassOutputBuffer", chunk.culledPositionBuffer);
         cullGrassCS.SetBuffer(3, "_GroupSumArray", scannedGroupSumBuffer);
         cullGrassCS.Dispatch(3, numThreadGroups, 1, 1);
+        //GrassData[] a = new GrassData[numInstancePerChunk];
+        //uint[] b = new uint[5];
+        //uint[] c = new uint[5];
 
-        chunk.material.SetBuffer("grassDataBuffer", chunk.culledPositionBuffer);
+        if (HI_Z_ON)
+        {
+
+            //oc
+            //depth: far = 1, near = 0 VP
+            //depth: far = 0, near = 1
+            Matrix4x4 m = GL.GetGPUProjectionMatrix(Camera.main.projectionMatrix, false) * Camera.main.worldToCameraMatrix;
+
+
+            occlusionCullingCS.SetVector("_CameraPosition", cam.transform.position);
+            occlusionCullingCS.SetFloat("_CameraHalfFOV", cam.fieldOfView / 2);
+            occlusionCullingCS.SetMatrix("MATRIX_VP", m);
+            occlusionCullingCS.SetBuffer(0, "_CulledGrassOutputBuffer", chunk.culledPositionBuffer);
+            occlusionCullingCS.SetBuffer(0, "_ArgsBuffer", lod ? chunk.argsBufferLOD : chunk.argsBuffer);
+            occlusionCullingCS.SetBuffer(0, "_TempArgsBuffer", chunk.tempBuffer);
+            occlusionCullingCS.SetBuffer(0, "_OcclusionBuffer", chunk.occlusionBuffer);
+            occlusionCullingCS.SetTexture(0, "HZB_Depth", hzDepth);
+            occlusionCullingCS.Dispatch(0, numVoteThreadGroups, 1, 1);
+        }
+            //chunk.occlusionBuffer.GetData(a);
+
+        //chunk.argsBuffer.GetData(b);
+        //int i = 0;
+        //while (i < 10)
+        //{
+
+        //    Debug.Log(a[i].position);
+        //    i++;
+        //}
+        chunk.material.SetBuffer("grassDataBuffer",HI_Z_ON ? chunk.occlusionBuffer : chunk.culledPositionBuffer);
 
         chunk.material.SetTexture("_WindNoise", windMap);
     }
@@ -330,13 +398,15 @@ public class GrassRenderer : MonoBehaviour
         mat.SetColor("_FogColor", fogColor);
         mat.SetFloat("_FogOffset", fogOffset);
         mat.SetFloat("_FogDensity", fogDensity);
-
+        mat.SetFloat("_Darkness", darkness);
     }
 
     private void Update()
     {
         Matrix4x4 P = cam.projectionMatrix;
-        Matrix4x4 V = cam.transform.worldToLocalMatrix;
+        Matrix4x4 V = cam.worldToCameraMatrix;
+        //Debug.Log(cam.transform.worldToLocalMatrix);
+        //Debug.Log(cam.worldToCameraMatrix);
         Matrix4x4 VP = P * V;
         bool lod;
         fog.enabled = isFogOn;

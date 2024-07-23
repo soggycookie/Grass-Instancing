@@ -20,16 +20,20 @@ RWStructuredBuffer<uint> _GroupSumArray;
 RWStructuredBuffer<uint> _GroupSumArrayIn;
 RWStructuredBuffer<uint> _GroupSumArrayOut;
 RWStructuredBuffer<GrassData> _CulledGrassOutputBuffer;
+RWStructuredBuffer<GrassData> _OcclusionBuffer;
 
 float _ScaleY;
 float _XAxisRotation;
 uint _NumInstance;
 float4x4 MATRIX_VP;
 int _NumOfGroups;
-groupshared uint temp[2 * NUM_THREAD_GROUPS_X];
-groupshared uint grouptemp[2 * 1024];
 float _Distance;
 float3 _CameraPosition;
+
+
+groupshared uint temp[2 * NUM_THREAD_GROUPS_X];
+groupshared uint grouptemp[2 * 1024];
+
 
 [numthreads(128, 1, 1)]
 void Vote(uint3 id : SV_DispatchThreadID) {
@@ -40,11 +44,11 @@ void Vote(uint3 id : SV_DispatchThreadID) {
         float4 clipspace = mul(MATRIX_VP, position);
 
         float3 NDCSpace = clipspace.xyz;
-        NDCSpace /= -clipspace.w;
+        NDCSpace /= clipspace.w;
 
-        NDCSpace.x = NDCSpace.x / 2.0f + 0.5f;
-        NDCSpace.y = NDCSpace.y / 2.0f + 0.5f;
-        NDCSpace.z = -clipspace.w;
+        NDCSpace.x = NDCSpace.x * 0.5f + 0.5f;
+        NDCSpace.y = NDCSpace.y * 0.5f + 0.5f;
+        NDCSpace.z = clipspace.w;
 
         // screen space [0,1]
         // create a margin on x,y axis to avoid flickering when camera slightly move
@@ -177,6 +181,7 @@ void Compact(uint3 id : SV_DISPATCHTHREADID, uint groupIndex : SV_GROUPINDEX, ui
         bool inCamera = _VoteBuffer[id.x];
     
         if (inCamera == 1) {
+
             InterlockedAdd(_ArgsBuffer[1], 1);
             _CulledGrassOutputBuffer[_ScanBuffer[tid] + groupSum] = _GrassDataBuffer[tid];
         }

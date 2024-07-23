@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 2100000, guid: 1700716a8dd8948cf8c66ea34a2786d5, type: 2}
+  m_SkyboxMaterial: {fileID: 2100000, guid: 8c94435c262dc614799eb36fd36c5b4a, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.3592844, g: 0.7508059, b: 0.80634266, a: 1}
+  m_IndirectSpecularColor: {r: 0.026700953, g: 0.29866886, b: 0.49627915, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -123,7 +123,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &18632041
+--- !u!1 &113478807
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -131,9 +131,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 18632045}
-  - component: {fileID: 18632044}
-  - component: {fileID: 18632043}
+  - component: {fileID: 113478811}
+  - component: {fileID: 113478810}
+  - component: {fileID: 113478809}
   m_Layer: 0
   m_Name: Cube
   m_TagString: Untagged
@@ -141,13 +141,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!23 &18632043
+--- !u!23 &113478809
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 18632041}
+  m_GameObject: {fileID: 113478807}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -183,26 +183,26 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!33 &18632044
+--- !u!33 &113478810
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 18632041}
+  m_GameObject: {fileID: 113478807}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!4 &18632045
+--- !u!4 &113478811
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 18632041}
+  m_GameObject: {fileID: 113478807}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 4.6205444, y: 2, z: -12.670844}
-  m_LocalScale: {x: 1, y: 2.4817, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalPosition: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 5, y: 5, z: 5}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -219,6 +219,7 @@ GameObject:
   - component: {fileID: 182774531}
   - component: {fileID: 182774534}
   - component: {fileID: 182774535}
+  - component: {fileID: 182774536}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -294,7 +295,7 @@ Transform:
   m_GameObject: {fileID: 182774530}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 7.9, z: -10}
+  m_LocalPosition: {x: 0, y: 5, z: -50}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -356,6 +357,20 @@ MonoBehaviour:
   fogColor: {r: 0.8113208, g: 0.8074938, b: 0.8074938, a: 1}
   fogDensity: 0.03
   fogOffset: 5
+--- !u!114 &182774536
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 182774530}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3a6658341ec9df4980d8fc2b53b4e94, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  grassRenderer: {fileID: 2029054825}
+  mipmapMaker: {fileID: 4800000, guid: 1776b644c7243fb4d9232f0812005e06, type: 3}
 --- !u!1 &2029054824
 GameObject:
   m_ObjectHideFlags: 0
@@ -393,6 +408,7 @@ MonoBehaviour:
   grassInitializerCS: {fileID: 7200000, guid: 811685bae4fbbc046bab0f7264aa2bc8, type: 3}
   cullGrassCS: {fileID: 7200000, guid: 88ae234f3e7e8ff45a29f6fdb1067546, type: 3}
   windNoiseCS: {fileID: 7200000, guid: 61cbf537240a0c641bbb8563c7d93739, type: 3}
+  occlusionCullingCS: {fileID: 7200000, guid: 31fc77d898aad2c4f872b07de25cbe98, type: 3}
   densityPerDimension: 2
   numInstancePerChunkDimension: 30
   grassMeshLOD: {fileID: -462981019419857548, guid: 964dc7fdf44c21a4d947ec7460f36fe1, type: 3}
@@ -402,11 +418,12 @@ MonoBehaviour:
   distanceLOD: 50
   isFogOn: 0
   changeMatWhilePlay: 1
+  HI_Z_ON: 1
   tipColor: {r: 0.29803923, g: 0.73333335, b: 0.09019608, a: 1}
   rootColor: {r: 0.13333334, g: 0.33333334, b: 0.10980392, a: 1}
   highGrassTipColorOn: 1
   highGrassTipColor: {r: 0.8, g: 0.8, b: 0.33333334, a: 1}
-  highGrassTipFactor: 3
+  highGrassTipFactor: 4
   grassCurve: 0.5
   swaySpeed: 2
   windTextureScale: 0.03
@@ -420,9 +437,11 @@ MonoBehaviour:
   scaleXBaseOnHeightMap: {x: 0, y: 0}
   grassHeightTexture: {fileID: 2800000, guid: 4a066fc3839d0274cb04da117baf5ca3, type: 3}
   heightStrength: 4
+  darkness: 0
   fogColor: {r: 0.8117647, g: 0.8117647, b: 0.8117647, a: 1}
   fogOffset: 5
   fogDensity: 0.03
+  hzDepth: {fileID: 0}
 --- !u!4 &2029054826
 Transform:
   m_ObjectHideFlags: 0
@@ -443,5 +462,5 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 182774533}
-  - {fileID: 18632045}
   - {fileID: 2029054826}
+  - {fileID: 113478811}

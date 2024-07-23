@@ -19,6 +19,7 @@ Shader "Unlit/Grass"
         _ScaleXBaseOnY("Scale X Base on height map", Vector) = (0,0,0,0)
         [NoScaleOffset] _GrassHeightMap("Grass Height Texture", 2D) = "gray"{}
         _HeightStrength("Height Strength", Range(0, 10)) = 1 
+        _Darkness("Darkness", Range(0,1) )= 0
 
         _FogColor ("Fog Color", Color) = (1, 1, 1)
         _FogOffset ("Fog Offset", Range(0.0, 10.0)) = 0.0
@@ -63,7 +64,7 @@ Shader "Unlit/Grass"
             float4 _MainTex_ST, _GrassHeightMap_ST;
             float4 _TipColor, _RootColor, _FogColor, _HighGrassTipColor;
             float _Droop, _HeightStrength, _WindSpeed, _WindAmplitude, _FogDensity, _FogOffset;
-            float _Scale;
+            float _Scale, _Darkness;
             uint _NumInstanceDimension;
             float _ChunkSize;
             float _AmbientOcclusion, _SwaySpeed, _ScaleYAxis, _ScaleXAxis, _HighGrassTipFactor, _IsTipColorOn, _DensityAmbient;
@@ -162,6 +163,7 @@ Shader "Unlit/Grass"
                 ambientFactor = _DensityAmbient ? ambientFactor : 0;
                 color *=  pow(i.uv.y , ambientFactor);
                 
+                color = lerp(color, float4(0,0,0,0), _Darkness);
                 /* Fog */
                 #if IS_FOG
                     float viewDistance = length(_WorldSpaceCameraPos - i.worldPos);
