@@ -24,7 +24,7 @@ public class DepthTexMaker : MonoBehaviour
         hzDepth.filterMode = FilterMode.Point;
         hzDepth.Create();
 
-        grassRenderer.SetDephTexture(hzDepth);
+        grassRenderer.SetDepthTexture(hzDepth);
     }
 
     // Update is called once per frame

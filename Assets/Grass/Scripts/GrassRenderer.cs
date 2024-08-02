@@ -30,6 +30,10 @@ public class GrassRenderer : MonoBehaviour
 
     const float planeDimension = 10f;
 
+    [Header("Shader")]
+    public Material grassMaterial;
+    public ComputeShader grassInitializerCS, cullGrassCS, windNoiseCS, occlusionCullingCS;
+
     [Header("Terrain")]
     public Transform parent;
     public float uniformPlaneScale = 1.0f;
@@ -37,17 +41,13 @@ public class GrassRenderer : MonoBehaviour
     private float scaledDimension;
     GrassChunk[] chunks;
 
-    [Header("Shader")]
-    public Material grassMaterial;
-    public ComputeShader grassInitializerCS, cullGrassCS, windNoiseCS, occlusionCullingCS;
-
     //Buffer
     private ComputeBuffer voteBuffer, scanBuffer, groupSumArrayBuffer, scannedGroupSumBuffer;
     private int numThreadGroups, numVoteThreadGroups, numGroupScanThreadGroups;
 
     #region grass technical settings
     [Space(5)]
-    [Header("Grass technical settings")]
+    [Header("Grass number settings")]
     public int densityPerDimension = 1;
     public int numInstancePerChunkDimension;
     public Mesh grassMeshLOD, grassMesh;
@@ -83,11 +83,12 @@ public class GrassRenderer : MonoBehaviour
     [Range(0.00001f, 2)]
     public float windTextureScale = 0.03f;
     [Range(0, 5)]
-    public float windSpeed = 1;
+    public float windSpeed        = 1;
     [Range(0, 5)]
     public float windAmplitude;
+    public Vector2 windDirection;
     [Tooltip("To read only")]
-    public RenderTexture windMap;
+    private RenderTexture windMap;
 
     [Space(5)]
     public bool ambientBaseOnDensity;
@@ -128,7 +129,7 @@ public class GrassRenderer : MonoBehaviour
     public RenderTexture hzDepth;
 
 
-    public void SetDephTexture(RenderTexture tx)
+    public void SetDepthTexture(RenderTexture tx)
     {
         hzDepth = tx;
     }
@@ -388,6 +389,8 @@ public class GrassRenderer : MonoBehaviour
         mat.SetFloat("_WindAmplitude", windAmplitude);
         windNoiseCS.SetFloat("_WindSpeed", windSpeed);
         windNoiseCS.SetFloat("_Scale", windTextureScale);
+        windNoiseCS.SetVector("_Direction", (Vector4) windDirection);
+        mat.SetVector("_WindDirection", (Vector4)windDirection);
         mat.SetInt("_DensityAmbient", ambientBaseOnDensity ? 1 : 0);
         mat.SetFloat("_AmbientOcclusion", ambientOcclusion);
         mat.SetFloat("_ScaleYAxis", scaleHeight);
@@ -412,7 +415,7 @@ public class GrassRenderer : MonoBehaviour
         fog.enabled = isFogOn;
         for (int i = 0; i < chunks.Length; i++)
         {
-            if (isFogOn)
+            if (isFogOn) 
             {
                 chunks[i].material.EnableKeyword("IS_FOG");
             }
@@ -469,11 +472,15 @@ public class GrassRenderer : MonoBehaviour
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.blue;
-        for (int i = 0; i < chunks.Length; i++)
+        if (Application.isPlaying)
         {
-            Gizmos.DrawWireCube(chunks[i].bound.center, chunks[i].bound.size);
+            for (int i = 0; i < chunks.Length; i++)
+            {
+                Gizmos.DrawWireCube(chunks[i].bound.center, chunks[i].bound.size);
+            }
         }
     }
+
     private void OnValidate()
     {
         if (uniformPlaneScale < 1.0f)

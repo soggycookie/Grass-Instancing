@@ -61,14 +61,15 @@ Shader "Unlit/Grass"
 
             
             sampler2D _MainTex, _WindNoise, _GrassHeightMap;
-            float4 _MainTex_ST, _GrassHeightMap_ST;
-            float4 _TipColor, _RootColor, _FogColor, _HighGrassTipColor;
-            float _Droop, _HeightStrength, _WindSpeed, _WindAmplitude, _FogDensity, _FogOffset;
-            float _Scale, _Darkness;
-            uint _NumInstanceDimension;
-            float _ChunkSize;
-            float _AmbientOcclusion, _SwaySpeed, _ScaleYAxis, _ScaleXAxis, _HighGrassTipFactor, _IsTipColorOn, _DensityAmbient;
-            float4 _ScaleXBaseOnY;
+            float4    _MainTex_ST, _GrassHeightMap_ST, _ScaleXBaseOnY, _WindDirection;
+            float4    _TipColor, _RootColor, _FogColor, _HighGrassTipColor ;
+            float     _ChunkSize, _Droop;
+            float     _HighGrassTipFactor, _IsTipColorOn;
+            float     _WindSpeed, _WindAmplitude, _SwaySpeed;
+            float     _Scale, _ScaleYAxis, _ScaleXAxis, _HeightStrength;
+            float     _AmbientOcclusion, _DensityAmbient, _Darkness;
+            float     _FogDensity, _FogOffset;
+            uint      _NumInstanceDimension;
 
             struct appdata
             {
@@ -119,7 +120,7 @@ Shader "Unlit/Grass"
                 v.vertex.y *=  _ScaleYAxis;
                 v.vertex.xz *= _ScaleXAxis / 2;
 
-                //create cluster of grass
+                //create clump of grass
                 float heightValue = tex2Dlod(_GrassHeightMap, float4(worldUV,0,0)).r ;
 
                 v.vertex = RotateAroundYInDegrees(v.vertex, idHash * 360.0f);
@@ -129,9 +130,9 @@ Shader "Unlit/Grass"
                 
                 //wind animation
                 float windValue = tex2Dlod(_WindNoise,float4(worldUV * 0.5f ,0,0) )* 0.5f + 0.5f;             
-                float2 windDir = normalize(float2(-1,-1));
+                float2 windDir = -normalize(_WindDirection.xy);
                 float2 wind = windValue;
-                v.vertex.xz += windDir * v.uv.y  * (wind) * _WindAmplitude;
+                v.vertex.xz += windDir * v.uv.y  * wind * _WindAmplitude;
                 v.vertex.y -= wind *v.uv.y * _WindAmplitude * 0.5f;
 
                 //sway effect

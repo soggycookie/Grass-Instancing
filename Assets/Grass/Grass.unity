@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 2100000, guid: 8c94435c262dc614799eb36fd36c5b4a, type: 2}
+  m_SkyboxMaterial: {fileID: 2100000, guid: 6eecb3bb77b3f7a43a504fceda3b0b5f, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.026700953, g: 0.29866886, b: 0.49627915, a: 1}
+  m_IndirectSpecularColor: {r: 0.021663688, g: 0.01136612, b: 0.01931896, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -200,8 +200,8 @@ Transform:
   m_GameObject: {fileID: 113478807}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1, y: 1, z: 1}
-  m_LocalScale: {x: 5, y: 5, z: 5}
+  m_LocalPosition: {x: 50.5, y: 5.7, z: 14.8}
+  m_LocalScale: {x: 20, y: 20, z: 20}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
@@ -371,6 +371,74 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   grassRenderer: {fileID: 2029054825}
   mipmapMaker: {fileID: 4800000, guid: 1776b644c7243fb4d9232f0812005e06, type: 3}
+--- !u!1 &1475373336
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1475373339}
+  - component: {fileID: 1475373338}
+  - component: {fileID: 1475373337}
+  m_Layer: 0
+  m_Name: EventSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1475373337
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1475373336}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f231c4fb786f3946a6b90b886c48677, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SendPointerHoverToParent: 1
+  m_HorizontalAxis: Horizontal
+  m_VerticalAxis: Vertical
+  m_SubmitButton: Submit
+  m_CancelButton: Cancel
+  m_InputActionsPerSecond: 10
+  m_RepeatDelay: 0.5
+  m_ForceModuleActive: 0
+--- !u!114 &1475373338
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1475373336}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76c392e42b5098c458856cdf6ecaaaa1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_FirstSelected: {fileID: 0}
+  m_sendNavigationEvents: 1
+  m_DragThreshold: 10
+--- !u!4 &1475373339
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1475373336}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2029054824
 GameObject:
   m_ObjectHideFlags: 0
@@ -401,21 +469,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cam: {fileID: 182774532}
-  parent: {fileID: 2029054826}
-  uniformPlaneScale: 10
-  chunkDimension: 4
   grassMaterial: {fileID: 2100000, guid: 19996e6033a5aaf4bb82e3db08f550ce, type: 2}
   grassInitializerCS: {fileID: 7200000, guid: 811685bae4fbbc046bab0f7264aa2bc8, type: 3}
   cullGrassCS: {fileID: 7200000, guid: 88ae234f3e7e8ff45a29f6fdb1067546, type: 3}
   windNoiseCS: {fileID: 7200000, guid: 61cbf537240a0c641bbb8563c7d93739, type: 3}
   occlusionCullingCS: {fileID: 7200000, guid: 31fc77d898aad2c4f872b07de25cbe98, type: 3}
+  parent: {fileID: 2029054826}
+  uniformPlaneScale: 20
+  chunkDimension: 8
   densityPerDimension: 2
   numInstancePerChunkDimension: 30
   grassMeshLOD: {fileID: -462981019419857548, guid: 964dc7fdf44c21a4d947ec7460f36fe1, type: 3}
   grassMesh: {fileID: -462981019419857548, guid: bd2b231b133f93d44bddd18f1295a9a6, type: 3}
   groundMat: {fileID: 2100000, guid: b9d0799a2de5b264cba65af5d7bd990f, type: 2}
-  distanceCutoff: 500
-  distanceLOD: 50
+  distanceCutoff: 200
+  distanceLOD: 20
   isFogOn: 0
   changeMatWhilePlay: 1
   HI_Z_ON: 1
@@ -429,7 +497,7 @@ MonoBehaviour:
   windTextureScale: 0.03
   windSpeed: 1
   windAmplitude: 3
-  windMap: {fileID: 0}
+  windDirection: {x: 1, y: 1}
   ambientBaseOnDensity: 1
   ambientOcclusion: 0
   scaleHeight: 1
@@ -437,7 +505,7 @@ MonoBehaviour:
   scaleXBaseOnHeightMap: {x: 0, y: 0}
   grassHeightTexture: {fileID: 2800000, guid: 4a066fc3839d0274cb04da117baf5ca3, type: 3}
   heightStrength: 4
-  darkness: 0
+  darkness: 0.6
   fogColor: {r: 0.8117647, g: 0.8117647, b: 0.8117647, a: 1}
   fogOffset: 5
   fogDensity: 0.03
@@ -464,3 +532,4 @@ SceneRoots:
   - {fileID: 182774533}
   - {fileID: 2029054826}
   - {fileID: 113478811}
+  - {fileID: 1475373339}
