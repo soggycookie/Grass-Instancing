@@ -34,8 +34,8 @@ One more downside of GPU Instancing, we can not get a free CPU's frustum culling
 1. **Vote:** General idea is checking each blade if it's inside camera view, and write it down into a ComputeBuffer named **Vote**. We can achieve it by using already stored world pos buffer and multiply the value with VP (view and perspective) matrix to get clip space pos. After that, executing perspective division to convert to NDC space and normalizing the range of NDC space to 0 - 1. Adding a little offset to each x, y, z to avoid flickering when blade is at near screen border. We can do distance cutoff in this block of code also.
 2. **Scan:** a problem with Compute Shader is we can't just skip grass pos being outsite of view and jump to the next one. We have to modify the buffer, write down the positions of grass being valid consecutively and discard the rest. To achieve this, we have to implement Parallel Prefix Sum Algorithm[^1], which can be used to sort array, and run it on the previous **vote** buffer. First of all, this algorithm run by using binary tree, so the size of an buffer must be power of 2. Moreover, maximum thread in a thread group is 1024 thread; in other word, 1024 calculation. It basically means that we can not send buffer being more than 1024 elements. So we have to perform this algorithm on many thread groups. However, thread groups do not share value together, example: [0,0,1,0,0,1,1,1], we dispatch into 2 thread groups containing 4 threads each; thread group 1 run on half of the buffer [0,0,1,0] -> [0,0,0,1]; thread group 2 run on the rest [0,1,1,1] -> [0,0,1,2] (exclusive prefix sum). After storing them in a **Sum** buffer [0,0,0,1,0,0,1,2], you can clearly see that the latter group is not done yet. If doing prefix sum correctly, it's supposed to be[0,0,0,1] and [1,1,2,3]. To solve this this problem, we construct a new  buffer contains all the last element of each thread group (it's the sum of all elements in each thread group) and run the algorithm on it again, example:[0,0,0,1] -> 1 from first thread group,[0,0,1,2] -> 2 from second, construct a buffer named **GroupSum** -> [1,2]; run algorithm again [1,2] -> [1,3].
 3. Compact: Final step, it basically adds value from **Group Sum** to **Sum Array**: [0,0,0,1,0,0,1,2] and [1,3] . The first half [0,0,0,1], it's right, no more modification but the second one [0,0,1,2], it needs to be added the sum of the first, which is [1] in group sum buffer. If there were a third group, added [3]. After all, we have this buffer [0,0,0,1,1,1,2,3]. What this buffer represents is it's a visible index buffer. Now look closely at the final **scan** buffer and **vote** buffer. First two 0 is not visible because of the 0 and 1 indices of **vote** buffer is 0 (invisible), but the third 0 in the **scan** buffer has 1 in **vote** buffer. It means the third position in **world pos** buffer is visible. We store the value in final buffer, culledGrassPos. We keep doing that till we are done. That's it!
-\
-![Exclusive and Inclusive Prefix Sum](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT4tM-AiRfC9bDW4zp033Uu1_BoHeBVIupQfQ&s)\
+##
+| ![Exclusive and Inclusive Prefix Sum](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT4tM-AiRfC9bDW4zp033Uu1_BoHeBVIupQfQ&s) | \
  *Exclusive and Inclusive Prefix Sum*
 \
 ![How this algorithm is used to sort](https://developer.download.nvidia.com/books/gpugems3/39fig10.jpg)\
@@ -46,7 +46,7 @@ One more downside of GPU Instancing, we can not get a free CPU's frustum culling
 \
 ![How to achieve this algorithm ](https://developer.download.nvidia.com/books/gpugems3/39fig04.jpg)\
  *Down Sweep Phase*
-\
+##
 Maybe the example above is not comprehensible and easy to understand enough. I suggest you take your time to read the actual article to get the grip of it.
 
 ### Occlusion Culling
