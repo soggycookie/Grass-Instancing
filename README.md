@@ -36,7 +36,8 @@ One more downside of GPU Instancing, we can not get a free CPU's frustum culling
 3. Compact: Final step, it basically adds value from **Group Sum** to **Sum Array**: [0,0,0,1,0,0,1,2] and [1,3] . The first half [0,0,0,1], it's right, no more modification but the second one [0,0,1,2], it needs to be added the sum of the first, which is [1] in group sum buffer. If there were a third group, added [3]. After all, we have this buffer [0,0,0,1,1,1,2,3]. What this buffer represents is it's a visible index buffer. Now look closely at the final **scan** buffer and **vote** buffer. First two 0 is not visible because of the 0 and 1 indices of **vote** buffer is 0 (invisible), but the third 0 in the **scan** buffer has 1 in **vote** buffer. It means the third position in **world pos** buffer is visible. We store the value in final buffer, culledGrassPos. We keep doing that till we are done. That's it!
 ##
 <div style=" text-align: center;" markdown="1">
-![Exclusive and Inclusive Prefix Sum](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT4tM-AiRfC9bDW4zp033Uu1_BoHeBVIupQfQ&s) \
+![Exclusive and Inclusive Prefix Sum](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT4tM-AiRfC9bDW4zp033Uu1_BoHeBVIupQfQ&s) 
+ </div>
  *Exclusive and Inclusive Prefix Sum*
 \
 ![How this algorithm is used to sort](https://developer.download.nvidia.com/books/gpugems3/39fig10.jpg)\
@@ -47,7 +48,7 @@ One more downside of GPU Instancing, we can not get a free CPU's frustum culling
 \
 ![How to achieve this algorithm ](https://developer.download.nvidia.com/books/gpugems3/39fig04.jpg)\
  *Down Sweep Phase*
-</div>
+
 ##
 Maybe the example above is not comprehensible and easy to understand enough. I suggest you take your time to read the actual article to get the grip of it.
 
