@@ -49,19 +49,29 @@ One more downside of GPU Instancing, we can not get a free CPU's frustum culling
  *Down Sweep Phase*
 ##
 Maybe the example above is not comprehensible and easy to understand enough. I suggest you take your time to read the actual article to get the grip of it.
+##
 
+![Frustum Culling](/Assets/Grass/Image/Frustum.png)
 ### Occlusion Culling
 
-## Others
+For the same reason as frustum culling, we have to construct occlusion culling by ourself again. After doing research, I found Hierarchical Z Buffer Culling. The basic idea is to create camera depth texture mip chain, and sample the most suitable mipmap to do culling. That's the algorithm.
 
-Added and tweaked a few more settings
-![Swayed Grass](/Assets/Grass/Image/sway.gif)
+1. **Create mip chain:** We create a C# script, take the camera texture from shader and construct each mipmap level. Each texel from level n mipmap is max value (min value if reversed z) of the 2x2 neighbor texels of level n-1 mipmap (basically the farthest in world space).
+2. **Sample the suitable mipmap:** Because grass blade does not have bounding box, so we have to estimate the proportion of screen space grass width to actual screen space screen's size [0,1]. With that ratio, we calculate suitable mip level. Then we sample 2x2 corresponding texels near that grass pos. After that, we compare it with the z value of the blade and the return sampled value. If the depth value is farther than the sampled value, it is occluded.
 
-## Wind System
+![Occlusion Culling](/Assets/Grass/Image/Occlusion.png)
 
-HLSL does not have built-in perlin noise, so I implemented one by using power of CTRL C - CTRL V. After that, the noise is rendered into a render texture, let grass shader sample it. 
+### Notes
+Using occlusion and frustim culling in GPU cost large amount of GPU memory. I mean A LOT. There is actually a better way to do culling is to use subdivison chunk method. Basically, we divide grass field into chunk, then divide chunk into another smaller chunk, and we keep doing that until it is small enough and efficient enough. We take advantage of these chunks bounding box to do all the culling. That's one method that Ghost of Tsushima use. But this project is mainly for education purpose, so I don't really care about doing the most efficient and optimized way.
+
+
+### Wind System
+
+HLSL does not have built-in perlin noise, and I was too lazy to implemente one, so by using power of CTRL C - CTRL V, I actually have a pretty good perlin noise generator. The noise is rendered into a render texture, scroll the texture with user-determined direction, and finally, let grass shader sample it.  
 ![Perlin Noise Wind System](/Assets/Grass/Image/wind.gif)
-## Tasks
+
+
+### Tasks
 
 - :white_check_mark: Fog
 - :white_check_mark: GPU Frustum Culling
