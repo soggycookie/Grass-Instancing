@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 2100000, guid: 6eecb3bb77b3f7a43a504fceda3b0b5f, type: 2}
+  m_SkyboxMaterial: {fileID: 2100000, guid: 99a400087584f4263b1a8979d6007ad4, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.021663688, g: 0.01136612, b: 0.01931896, a: 1}
+  m_IndirectSpecularColor: {r: 0.32289222, g: 0.8092532, b: 0.92848176, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -161,7 +161,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: b9d0799a2de5b264cba65af5d7bd990f, type: 2}
+  - {fileID: 2100000, guid: 627f46b5943e6a645a1daf4c0e4373f9, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -200,7 +200,7 @@ Transform:
   m_GameObject: {fileID: 113478807}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 50.5, y: 5.7, z: 14.8}
+  m_LocalPosition: {x: 11.66, y: 5.7, z: -17.55}
   m_LocalScale: {x: 20, y: 20, z: 20}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -486,7 +486,7 @@ MonoBehaviour:
   distanceLOD: 20
   isFogOn: 0
   changeMatWhilePlay: 1
-  HI_Z_ON: 1
+  HI_Z_ON: 0
   tipColor: {r: 0.29803923, g: 0.73333335, b: 0.09019608, a: 1}
   rootColor: {r: 0.13333334, g: 0.33333334, b: 0.10980392, a: 1}
   highGrassTipColorOn: 1
@@ -505,7 +505,7 @@ MonoBehaviour:
   scaleXBaseOnHeightMap: {x: 0, y: 0}
   grassHeightTexture: {fileID: 2800000, guid: 4a066fc3839d0274cb04da117baf5ca3, type: 3}
   heightStrength: 4
-  darkness: 0.6
+  darkness: 0
   fogColor: {r: 0.8117647, g: 0.8117647, b: 0.8117647, a: 1}
   fogOffset: 5
   fogDensity: 0.03

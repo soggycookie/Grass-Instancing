@@ -67,7 +67,7 @@ Using occlusion and frustim culling in GPU cost large amount of GPU memory. I me
 
 ### Wind System
 
-HLSL does not have built-in perlin noise, and I was too lazy to implemente one, so by using power of CTRL C - CTRL V, I actually have a pretty good perlin noise generator. The noise is rendered into a render texture, scroll the texture with user-determined direction, and finally, let grass shader sample it.  
+HLSL does not have built-in perlin noise, and I was too lazy to implement one, so by using power of CTRL C - CTRL V, I actually have a pretty good perlin noise generator. The noise is rendered into a render texture, scroll the texture with user-determined direction, and finally, let grass shader sample it.  
 ![Perlin Noise Wind System](/Assets/Grass/Image/wind.gif)
 
 
@@ -85,6 +85,7 @@ HLSL does not have built-in perlin noise, and I was too lazy to implemente one, 
 - [Acerola's project](https://github.com/GarrettGunnell/Grass)
 - [Good tutorial on explaining Parallel Prefix Sum](https://www.youtube.com/watch?v=lavZl_wEbPE)
 - [HLSL perlin noise](https://gist.github.com/fadookie/25adf86ae7e2753d717c#file-noisesimplex-cginc)
+- [HZB Github](https://github.com/jackie2009/HiZ_grass_culling)
 ## Other Resources
 
 - [Catlikecoding](https://catlikecoding.com/): He provides tons of good tutorial, like Rendering, GPU Instancing, Compute Shader....
