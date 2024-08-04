@@ -116,7 +116,7 @@ public class GrassRenderer : MonoBehaviour
     [Range(0, 1)]
     public float fogDensity;
     #endregion
-
+     
 
 
 
@@ -447,6 +447,13 @@ public class GrassRenderer : MonoBehaviour
         chunk.argsBufferLOD = null;
         chunk.argsBuffer.Release();
         chunk.argsBuffer = null;
+        chunk.occlusionBuffer.Release();
+        chunk.occlusionBuffer = null;
+        if (HI_Z_ON)
+        {
+            chunk.tempBuffer.Release();
+            chunk.tempBuffer = null;
+        }
     }
 
     private void OnDisable()
